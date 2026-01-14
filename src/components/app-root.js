@@ -58,6 +58,8 @@ class AppRoot extends HTMLElement {
 
         this.render();
 
+        this.checkConfigStatus();
+
         this.addEventListener('navigate', (e) => {
             this.state.view = e.detail.view;
             if (e.detail.mission) this.state.selectedMission = e.detail.mission;
@@ -67,6 +69,49 @@ class AppRoot extends HTMLElement {
             if (e.detail.result) this.state.sessionResult = e.detail.result;
             this.render();
         });
+    }
+
+    async checkConfigStatus() {
+        try {
+            const res = await fetch('/api/status');
+            const data = await res.json();
+
+            if (data.mode === 'simple') {
+                this.showSimpleModeWarning(data.missing);
+            }
+        } catch (e) {
+            console.warn("Failed to check config status:", e);
+        }
+    }
+
+    showSimpleModeWarning(missing) {
+        const warning = document.createElement('div');
+        warning.style.cssText = `
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff3cd;
+            color: #856404;
+            padding: 8px 16px;
+            text-align: center;
+            font-size: 0.9rem;
+            z-index: 9999;
+            border-top: 1px solid #ffeeba;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        `;
+
+        const missingText = missing.join(' & ');
+        warning.innerHTML = `
+            <span>⚠️ <b>Simple Mode Check:</b> Production security features (${missingText}) are not configured.</span>
+            <a href="https://github.com/ZackAkil/immersive-language-learning-with-live-api#advanced-configuration" target="_blank" style="color: #533f03; text-decoration: underline; font-weight: bold; margin-left: 4px;">Learn more</a>
+        `;
+
+        this.appendChild(warning);
     }
 
     render() {

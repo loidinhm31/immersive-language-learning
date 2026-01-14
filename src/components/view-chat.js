@@ -67,9 +67,8 @@ class ViewChat extends HTMLElement {
        
 
         <div style="margin-top: var(--spacing-xl); text-align: center;">
-          <h2 style="font-size: 1.5rem; margin-bottom: var(--spacing-xs);">${
-            this._mission.target_role || "Target Person"
-          }</h2>
+          <h2 style="font-size: 1.5rem; margin-bottom: var(--spacing-xs);">${this._mission.target_role || "Target Person"
+      }</h2>
           <div style="
             background: rgba(var(--color-accent-secondary-rgb), 0.1); 
             border: 1px solid var(--color-accent-secondary);
@@ -79,16 +78,13 @@ class ViewChat extends HTMLElement {
             margin-top: var(--spacing-md);
             max-width: 800px;
           ">
-            <p style="font-size: 1.2rem; font-weight: bold; color: var(--color-accent-secondary); margin: 0;">${
-              this._mission.title
-            }</p>
-            <p style="font-size: 1rem; opacity: 0.9; margin-top: 4px;">${
-              this._mission.desc
-            }</p>
+            <p style="font-size: 1.2rem; font-weight: bold; color: var(--color-accent-secondary); margin: 0;">${this._mission.title
+      }</p>
+            <p style="font-size: 1rem; opacity: 0.9; margin-top: 4px;">${this._mission.desc
+      }</p>
           </div>
-          ${
-            this._mode === "immergo_teacher"
-              ? `
+          ${this._mode === "immergo_teacher"
+        ? `
           <div style="
             margin-top: var(--spacing-lg); 
             font-size: 0.9rem; 
@@ -105,30 +101,27 @@ class ViewChat extends HTMLElement {
             <span>You can ask for <strong>translations</strong> & <strong>explanations</strong> at any time.</span>
           </div>
           `
-              : ""
-          }
+        : ""
+      }
         </div>
 
-        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: ${
-          this._mode === "immergo_teacher" ? "space-between" : "center"
-        }; width: 100%; gap: ${
-      this._mode === "immergo_teacher" ? "10px" : "40px"
-    };">
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: ${this._mode === "immergo_teacher" ? "space-between" : "center"
+      }; width: 100%; gap: ${this._mode === "immergo_teacher" ? "10px" : "40px"
+      };">
           <!-- Model Visualizer (Top) -->
           <div style="width: 100%; height: 120px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
              <audio-visualizer id="model-viz"></audio-visualizer>
           </div>
           
           <!-- Transcript (Middle) -->
-          ${
-            this._mode === "immergo_teacher"
-              ? `
+          ${this._mode === "immergo_teacher"
+        ? `
             <div style="width: 100%; height: 250px; margin: 10px 0; position: relative;">
               <live-transcript></live-transcript>
             </div>
           `
-              : ""
-          }
+        : ""
+      }
 
           <!-- User Visualizer (Bottom) -->
            <div style="width: 100%; height: 120px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -597,22 +590,31 @@ When the user has successfully achieved the mission objective declared in the sc
   }
 
   async getRecaptchaToken() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
+      // Graceful fallback for Simple Mode
       if (typeof grecaptcha === "undefined") {
-        reject(new Error("Recaptcha not loaded"));
+        console.warn("⚠️ ReCAPTCHA not loaded (Simple Mode). Proceeding without token.");
+        resolve(null);
         return;
       }
-      grecaptcha.enterprise.ready(async () => {
-        try {
-          const t = await grecaptcha.enterprise.execute(
-            "6LeSYx8sAAAAAGdRAp8VQ2K9I-KYGWBykzayvQ8n",
-            { action: "LOGIN" }
-          );
-          resolve(t);
-        } catch (e) {
-          reject(e);
-        }
-      });
+
+      try {
+        grecaptcha.enterprise.ready(async () => {
+          try {
+            const t = await grecaptcha.enterprise.execute(
+              "6LeSYx8sAAAAAGdRAp8VQ2K9I-KYGWBykzayvQ8n",
+              { action: "LOGIN" }
+            );
+            resolve(t);
+          } catch (e) {
+            console.warn("⚠️ ReCAPTCHA execution failed (Simple Mode fallback):", e);
+            resolve(null);
+          }
+        });
+      } catch (e) {
+        console.warn("⚠️ ReCAPTCHA ready failed:", e);
+        resolve(null);
+      }
     });
   }
 }

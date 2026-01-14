@@ -61,12 +61,15 @@ def get_global_key(request: Request):
     return "global"
 
 # Initialize Rate Limiter
-# Initialize Rate Limiter
 if DEV_MODE:
     logger.info("🔧 DEV_MODE enabled: Rate limiting disabled (using memory storage)")
-    limiter = Limiter(key_func=get_fingerprint_key) # Defaults to memory
+    limiter = Limiter(key_func=get_global_key) # Defaults to memory
+elif not REDIS_URL:
+    logger.warning("⚠️ REDIS_URL not set: Using memory storage for rate limiting (not suitable for multi-instance)")
+    limiter = Limiter(key_func=get_fingerprint_key)
 else:
     limiter = Limiter(key_func=get_fingerprint_key, storage_uri=REDIS_URL)
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -112,6 +115,22 @@ def cleanup_tokens():
     for token in expired:
         del valid_tokens[token]
 
+@app.get("/api/status")
+async def get_status():
+    """Returns the current configuration mode (Simple vs Production)."""
+    missing = []
+    if not RECAPTCHA_SITE_KEY:
+        missing.append("recaptcha")
+    if not REDIS_URL:
+        missing.append("redis")
+    
+    mode = "simple" if missing else "production"
+    
+    return {
+        "mode": mode,
+        "missing": missing
+    }
+
 @app.get("/{full_path:path}")
 @simpletrack("page_view")
 async def serve_spa(full_path: str):
@@ -135,25 +154,30 @@ async def authenticate(request: Request):
         data = await request.json()
         recaptcha_token = data.get("recaptcha_token")
         
-        if not recaptcha_token:
-            raise HTTPException(status_code=400, detail="Missing ReCAPTCHA token")
-
-        if DEV_MODE:
-            logger.info("🔧 DEV_MODE enabled: Skipping ReCAPTCHA validation")
-            validation_result = {'valid': True, 'passes_threshold': True}
+        # Check if ReCAPTCHA is configured
+        if not RECAPTCHA_SITE_KEY:
+             logger.warning("⚠️ RECAPTCHA_SITE_KEY not set: Skipping validation (Simple Mode)")
+             # Proceed without validation
         else:
-            validation_result = recaptcha_validator.validate_token(
-                token=recaptcha_token,
-                recaptcha_action="LOGIN"
-            )
-        
-        if not validation_result['valid']:
-            logger.warning(f"ReCAPTCHA failed: {validation_result.get('error')}")
-            raise HTTPException(status_code=403, detail="ReCAPTCHA validation failed")
+            if not recaptcha_token:
+                raise HTTPException(status_code=400, detail="Missing ReCAPTCHA token")
+
+            if DEV_MODE:
+                logger.info("🔧 DEV_MODE enabled: Skipping ReCAPTCHA validation")
+                validation_result = {'valid': True, 'passes_threshold': True}
+            else:
+                validation_result = recaptcha_validator.validate_token(
+                    token=recaptcha_token,
+                    recaptcha_action="LOGIN"
+                )
             
-        if not validation_result['passes_threshold']:
-            logger.warning(f"ReCAPTCHA score too low: {validation_result.get('score')}")
-            raise HTTPException(status_code=403, detail="ReCAPTCHA score too low")
+            if not validation_result['valid']:
+                logger.warning(f"ReCAPTCHA failed: {validation_result.get('error')}")
+                raise HTTPException(status_code=403, detail="ReCAPTCHA validation failed")
+                
+            if not validation_result['passes_threshold']:
+                logger.warning(f"ReCAPTCHA score too low: {validation_result.get('score')}")
+                raise HTTPException(status_code=403, detail="ReCAPTCHA score too low")
 
         session_token = str(uuid.uuid4())
         cleanup_tokens()
