@@ -55,7 +55,6 @@ class ViewSplash extends HTMLElement {
 
         .mystic-title {
           /* Adjusted Typography - Single Line Guaranteed */
-          font-size: clamp(4.5rem, 5vw, 8rem);
           font-weight: 800;
           letter-spacing: -0.02em;
           line-height: normal; /* Allow natural height for descenders */
@@ -72,8 +71,7 @@ class ViewSplash extends HTMLElement {
           filter: drop-shadow(0 0 30px rgba(163, 177, 138, 0.2));
           position: relative;
           z-index: 10;
-          max-width: 95vw;
-          white-space: nowrap; /* Force single line */
+          text-align: center;
         }
 
         .mystic-btn {
@@ -169,7 +167,7 @@ class ViewSplash extends HTMLElement {
         <!-- Main Content -->
         <div class="content-wrapper">
 
-          <h1 class="mystic-title">Immergo</h1>
+          <h1 class="mystic-title">Immersive Language Learning</h1>
 
           <p style="
             font-family: 'Playfair Display', serif;

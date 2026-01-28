@@ -1,4 +1,4 @@
-# Immergo - Immersive Language Learning with Live API
+# Immersive Language Learning with Live API
 
 [![GitHub stars](https://img.shields.io/github/stars/ZackAkil/immersive-language-learning-with-live-api?style=social)](https://github.com/ZackAkil/immersive-language-learning-with-live-api/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/ZackAkil/immersive-language-learning-with-live-api?style=social)](https://github.com/ZackAkil/immersive-language-learning-with-live-api/network/members)
@@ -9,18 +9,18 @@
 
 ## ⚡️ Quick Deployment
 
-Launch your own private instance of Immergo to Google Cloud in just one click. No local setup required.
+Launch your own private instance of the app to Google Cloud in just one click. No local setup required.
 
 [![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?utm_source=github&utm_medium=unpaidsoc&utm_campaign=FY-Q1-global-cloud-ai-starter-apps&utm_content=immergo-app&utm_term=-)
 
 ---
 
-Immergo is an interactive language learning application powered by the **Google Gemini Live SDK**. It simulates real-world roleplay scenarios (e.g., buying a bus ticket, ordering coffee) to help users practice speaking in various languages with an AI that adopts perfectly reactive personas.
+This is an interactive language learning application powered by the **Google Gemini Live SDK**. It simulates real-world roleplay scenarios (e.g., buying a bus ticket, ordering coffee) to help users practice speaking in various languages with an AI that adopts perfectly reactive personas.
 
 <div align="center">
-  <img src="assets/1.png" alt="Immergo App Screenshot 1" width="30%">
-  <img src="assets/2.png" alt="Immergo App Screenshot 2" width="30%">
-  <img src="assets/3.png" alt="Immergo App Screenshot 3" width="30%">
+  <img src="assets/1.png" alt="Immersive Language Learning Screenshot 1" width="30%">
+  <img src="assets/2.png" alt="Immersive Language Learning Screenshot 2" width="30%">
+  <img src="assets/3.png" alt="Immersive Language Learning Screenshot 3" width="30%">
 </div>
 
 ## Features
@@ -49,7 +49,7 @@ Immergo is an interactive language learning application powered by the **Google 
 
 ## Video Walkthrough
 
-# [![Immergo Walkthrough](http://img.youtube.com/vi/cdATDhw66pk/0.jpg)](http://www.youtube.com/watch?v=cdATDhw66pk)
+# [![Immersive Language Learning Walkthrough](http://img.youtube.com/vi/cdATDhw66pk/0.jpg)](http://www.youtube.com/watch?v=cdATDhw66pk)
 
 
 ## Setup
@@ -112,7 +112,7 @@ To serve the built frontend via the Python server:
 
 ### 🚀 One-Click Production Deployment
 
-The fastest way to get Immergo running in production is using Google Cloud Run:
+The fastest way to get the app running in production is using Google Cloud Run:
 
 1.  **Click the button below**:
  [![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?utm_source=github&utm_medium=unpaidsoc&utm_campaign=FY-Q1-global-cloud-ai-starter-apps&utm_content=immergo-app&utm_term=-)   
