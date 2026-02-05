@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Turborepo
+.turbo
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -37,3 +40,4 @@ scripts/deploy.sh
 deploy.sh
 .pytest_cache/
 
+**/target/**

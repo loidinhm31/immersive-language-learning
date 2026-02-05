@@ -1,0 +1,43 @@
+{
+  "name": "@immersive-lang/ui",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./components": "./src/components/index.ts",
+    "./hooks": "./src/hooks/index.ts",
+    "./services": "./src/services/index.ts",
+    "./contexts": "./src/contexts/index.ts",
+    "./adapters": "./src/adapters/index.ts",
+    "./adapters/platform": "./src/adapters/shared/platform.ts",
+    "./styles": "./src/styles/globals.css"
+  },
+  "scripts": {
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@immersive-lang/shared": "workspace:*",
+    "@tailwindcss/vite": "^4.0.7",
+    "class-variance-authority": "^0.7.1",
+    "framer-motion": "^12.4.7",
+    "lucide-react": "^0.474.0",
+    "tailwindcss": "^4.0.7"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@immersive-lang/eslint-config": "workspace:*",
+    "@immersive-lang/tsconfig": "workspace:*",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "typescript": "^5.7.3"
+  }
+}

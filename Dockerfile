@@ -1,4 +1,4 @@
-# Copyright 2025 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Stage 1: Build the Frontend (Monorepo with pnpm and Turborepo)
+FROM node:22-alpine AS frontend-builder
 
-# Stage 1: Build the Frontend
-FROM node:22-alpine as frontend-builder
+# Enable corepack for pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+
+# Copy package files for dependency installation
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY turbo.json ./
+
+# Copy package.json files for all workspace packages
+COPY apps/web/package.json ./apps/web/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/tsconfig/package.json ./packages/tsconfig/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile || pnpm install
+
+# Copy source files
+COPY apps/ ./apps/
+COPY packages/ ./packages/
+
+# Build the web application
+RUN pnpm build
 
 # Stage 2: Set up the Backend
 FROM python:3.10-slim
@@ -35,14 +55,14 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the built frontend assets
-COPY --from=frontend-builder /app/dist ./dist
+# Copy the built frontend assets from the web app
+COPY --from=frontend-builder /app/apps/web/dist ./dist
 
-# Copy the server code
-COPY server ./server
-# Copy root level scripts/configs if needed (like .env example or deployment scripts, though usually not needed for runtime)
-# We might need to copy specific files if the server code relies on relative paths outside 'server/'
-# The main.py uses "dist" relative to CWD.
+# Copy the server code (only Python server for production)
+COPY server/server-py ./server/server_py
+
+# Create package init
+RUN touch ./server/__init__.py
 
 # Set environment variables
 ENV PORT=8080
@@ -53,12 +73,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 8080
 
 # Run the application
-# We run from the root /app so that "server.main" module path works if we run as module, 
-# or just "python server/main.py" as the script does.
-# The script server/main.py has: 
-# if __name__ == "__main__":
-#     import uvicorn
-#     port = int(os.getenv("PORT", 8000))
-#     uvicorn.run(app, host="0.0.0.0", port=port)
-# Run the application as a module to ensure /app is in sys.path
-CMD ["python", "-m", "server.main"]
+CMD ["python", "-m", "server.server_py.main"]

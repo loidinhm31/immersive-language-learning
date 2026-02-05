@@ -1,14 +1,27 @@
 {
-  "name": "immersive-language-learning-with-live-api",
+  "name": "immersive-lang",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=@immersive-lang/web",
+    "dev:native": "turbo dev --filter=@immersive-lang/native",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "turbo clean && rm -rf node_modules"
   },
   "devDependencies": {
-    "vite": "^7.2.4"
+    "@types/node": "^22.13.4",
+    "eslint": "^9.19.0",
+    "prettier": "^3.4.2",
+    "turbo": "^2.4.2",
+    "typescript": "^5.7.3"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20"
   }
 }

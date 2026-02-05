@@ -73,9 +73,9 @@ echo "🚀 Starting Backend (Uvicorn) on port 8000..."
 # Start Uvicorn in the background
 # Start Uvicorn in the background
 if [ -f "venv/bin/python" ]; then
-    venv/bin/python -m uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload &
+    venv/bin/python -m uvicorn server.server_py.main:app --host 0.0.0.0 --port 8000 --reload &
 else
-    python3 -m uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload &
+    python3 -m uvicorn server.server_py.main:app --host 0.0.0.0 --port 8000 --reload &
 fi
 BACKEND_PID=$!
 
