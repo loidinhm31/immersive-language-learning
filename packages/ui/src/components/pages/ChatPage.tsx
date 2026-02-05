@@ -49,6 +49,7 @@ export interface ChatPageProps {
   language: string;
   fromLanguage: string;
   mode: AppMode;
+  voice: string;
   sessionDuration: SessionDuration;
   onBack: () => void;
   onComplete: (result: SessionResult) => void;
@@ -164,6 +165,7 @@ export function ChatPage({
   language,
   fromLanguage,
   mode,
+  voice,
   sessionDuration,
   onBack,
   onComplete,
@@ -313,7 +315,8 @@ export function ChatPage({
           systemInstructions,
           enableTranscription,
           enableTranscription,
-          effectiveSessionDuration
+          effectiveSessionDuration,
+          voice
         );
 
         // Play start sound using preloaded audio

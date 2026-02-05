@@ -10,3 +10,4 @@ export {
   SessionDurationSelector,
   type SessionDurationSelectorProps,
 } from './SessionDurationSelector';
+export { VoiceSelector, type VoiceSelectorProps } from './VoiceSelector';

@@ -12,7 +12,7 @@ import type {
   AppState,
   SessionDuration,
 } from '@immersive-lang/shared';
-import { STORAGE_KEYS, DEFAULT_SESSION_DURATION } from '@immersive-lang/shared';
+import { STORAGE_KEYS, DEFAULT_SESSION_DURATION, DEFAULT_VOICE } from '@immersive-lang/shared';
 
 interface AppStateContextValue {
   state: AppState;
@@ -21,6 +21,7 @@ interface AppStateContextValue {
   setSelectedLanguage: (language: string) => void;
   setSelectedFromLanguage: (language: string) => void;
   setSelectedMode: (mode: AppMode) => void;
+  setSelectedVoice: (voice: string) => void;
   setSessionDuration: (duration: SessionDuration) => void;
   setSessionResult: (result: SessionResult | null) => void;
 }
@@ -48,6 +49,7 @@ function getInitialState(): AppState {
       selectedLanguage: '🇫🇷 French',
       selectedFromLanguage: '🇬🇧 English',
       selectedMode: 'immergo_immersive',
+      selectedVoice: DEFAULT_VOICE,
       sessionDuration: DEFAULT_SESSION_DURATION,
       sessionResult: null,
     };
@@ -64,6 +66,7 @@ function getInitialState(): AppState {
     selectedLanguage: localStorage.getItem(STORAGE_KEYS.LANGUAGE) || '🇫🇷 French',
     selectedFromLanguage: localStorage.getItem(STORAGE_KEYS.FROM_LANGUAGE) || '🇬🇧 English',
     selectedMode: (localStorage.getItem(STORAGE_KEYS.MODE) as AppMode) || 'immergo_immersive',
+    selectedVoice: localStorage.getItem(STORAGE_KEYS.VOICE) || DEFAULT_VOICE,
     sessionDuration,
     sessionResult: null,
   };
@@ -104,6 +107,11 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     setState(prev => ({ ...prev, selectedMode: mode }));
   }, []);
 
+  const setSelectedVoice = useCallback((voice: string) => {
+    localStorage.setItem(STORAGE_KEYS.VOICE, voice);
+    setState(prev => ({ ...prev, selectedVoice: voice }));
+  }, []);
+
   const setSessionDuration = useCallback((duration: SessionDuration) => {
     localStorage.setItem(STORAGE_KEYS.SESSION_DURATION, duration.toString());
     setState(prev => ({ ...prev, sessionDuration: duration }));
@@ -122,6 +130,7 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
         setSelectedLanguage,
         setSelectedFromLanguage,
         setSelectedMode,
+        setSelectedVoice,
         setSessionDuration,
         setSessionResult,
       }}

@@ -74,6 +74,7 @@ export interface AppState {
   selectedLanguage: string;
   selectedFromLanguage: string;
   selectedMode: AppMode;
+  selectedVoice: string;
   sessionDuration: SessionDuration;
   sessionResult: SessionResult | null;
 }

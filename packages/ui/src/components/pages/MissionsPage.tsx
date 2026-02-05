@@ -6,7 +6,13 @@
 import { useState } from 'react';
 import type { AppMode, Mission, SessionDuration } from '@immersive-lang/shared';
 import { Card } from '../atoms';
-import { LanguageSelector, MissionCard, ModeSelector, SessionDurationSelector } from '../organisms';
+import {
+  LanguageSelector,
+  MissionCard,
+  ModeSelector,
+  SessionDurationSelector,
+  VoiceSelector,
+} from '../organisms';
 
 // Import missions data - this will be bundled
 const MISSIONS_DATA: Mission[] = [
@@ -87,10 +93,12 @@ export interface MissionsPageProps {
   fromLanguage: string;
   toLanguage: string;
   mode: AppMode;
+  voice: string;
   sessionDuration: SessionDuration;
   onFromLanguageChange: (lang: string) => void;
   onToLanguageChange: (lang: string) => void;
   onModeChange: (mode: AppMode) => void;
+  onVoiceChange: (voice: string) => void;
   onSessionDurationChange: (duration: SessionDuration) => void;
   onMissionSelect: (mission: Mission) => void;
 }
@@ -99,10 +107,12 @@ export function MissionsPage({
   fromLanguage,
   toLanguage,
   mode,
+  voice,
   sessionDuration,
   onFromLanguageChange,
   onToLanguageChange,
   onModeChange,
+  onVoiceChange,
   onSessionDurationChange,
   onMissionSelect,
 }: MissionsPageProps) {
@@ -130,6 +140,11 @@ export function MissionsPage({
         <div className="col-span-2 mt-4 pt-6 border-t border-white/5">
           <SessionDurationSelector value={sessionDuration} onChange={onSessionDurationChange} />
         </div>
+        <VoiceSelector
+          value={voice}
+          onChange={onVoiceChange}
+          className="col-span-2 mt-4 pt-6 border-t border-white/5"
+        />
       </Card>
 
       {/* Section Title */}

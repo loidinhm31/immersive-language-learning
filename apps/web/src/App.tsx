@@ -21,6 +21,7 @@ function App() {
     setSelectedLanguage,
     setSelectedFromLanguage,
     setSelectedMode,
+    setSelectedVoice,
     setSessionDuration,
   } = useAppState();
 
@@ -56,6 +57,13 @@ function App() {
     [setSelectedMode]
   );
 
+  const handleVoiceChange = useCallback(
+    (voice: string) => {
+      setSelectedVoice(voice);
+    },
+    [setSelectedVoice]
+  );
+
   const handleSessionDurationChange = useCallback(
     (duration: SessionDuration) => {
       setSessionDuration(duration);
@@ -89,10 +97,12 @@ function App() {
             fromLanguage={state.selectedFromLanguage}
             toLanguage={state.selectedLanguage}
             mode={state.selectedMode}
+            voice={state.selectedVoice}
             sessionDuration={state.sessionDuration}
             onFromLanguageChange={handleFromLanguageChange}
             onToLanguageChange={handleToLanguageChange}
             onModeChange={handleModeChange}
+            onVoiceChange={handleVoiceChange}
             onSessionDurationChange={handleSessionDurationChange}
             onMissionSelect={handleMissionSelect}
           />
@@ -109,6 +119,7 @@ function App() {
             language={state.selectedLanguage}
             fromLanguage={state.selectedFromLanguage}
             mode={state.selectedMode}
+            voice={state.selectedVoice}
             sessionDuration={state.sessionDuration}
             onBack={handleChatBack}
             onComplete={handleChatComplete}

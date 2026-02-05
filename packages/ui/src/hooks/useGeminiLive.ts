@@ -38,7 +38,8 @@ export interface UseGeminiLiveReturn {
     systemInstructions: string,
     inputTranscription: boolean,
     outputTranscription: boolean,
-    sessionDuration?: number
+    sessionDuration?: number,
+    voice?: string
   ) => Promise<void>;
   disconnect: () => void;
   audioContext: AudioContext | null;
@@ -101,7 +102,8 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
       systemInstructions: string,
       inputTranscription: boolean,
       outputTranscription: boolean,
-      sessionDuration?: number
+      sessionDuration?: number,
+      voice?: string
     ) => {
       if (isConnecting || isConnected) return;
 
@@ -123,6 +125,9 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
         client.setSystemInstructions(systemInstructions);
         client.setInputAudioTranscription(inputTranscription);
         client.setOutputAudioTranscription(outputTranscription);
+        if (voice) {
+          client.setVoice(voice);
+        }
 
         // Add mission complete tool
         const completeMissionTool = new FunctionCallDefinition(
