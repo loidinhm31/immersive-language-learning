@@ -3,16 +3,21 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-import { useEffect, useState } from 'react';
-import type { Mission, AppMode, SessionDuration } from '@immersive-lang/shared';
-import { Card } from '../atoms/Card';
-import { MissionCard } from '../organisms/MissionCard';
-import { LanguageSelector } from '../organisms/LanguageSelector';
-import { ModeSelector } from '../organisms/ModeSelector';
-import { SessionDurationSelector } from '../organisms/SessionDurationSelector';
+import { useState } from 'react';
+import type { AppMode, Mission, SessionDuration } from '@immersive-lang/shared';
+import { Card } from '../atoms';
+import { LanguageSelector, MissionCard, ModeSelector, SessionDurationSelector } from '../organisms';
 
 // Import missions data - this will be bundled
 const MISSIONS_DATA: Mission[] = [
+  {
+    id: 10,
+    title: 'Free Talk',
+    difficulty: 'Easy',
+    desc: 'Chat freely about anything. Say "I have to go" when you want to end.',
+    target_role: 'Friendly Conversation Partner',
+    freestyle: true,
+  },
   {
     id: 0,
     title: 'Say Hello',

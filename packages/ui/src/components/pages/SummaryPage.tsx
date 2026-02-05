@@ -6,8 +6,8 @@
 import { AlertCircle, Star, Github, Clock, MessageSquare, Mic, Coins } from 'lucide-react';
 import type { SessionResult } from '@immersive-lang/shared';
 import { SCORE_LEVELS } from '@immersive-lang/shared';
-import { Button } from '../atoms/Button';
-import { Card } from '../atoms/Card';
+import { Button } from '../atoms';
+import { Card } from '../atoms';
 
 export interface SummaryPageProps {
   result: SessionResult;

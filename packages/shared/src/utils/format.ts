@@ -32,6 +32,7 @@ export function getDifficultyColor(difficulty: string): string {
  * Get mission icon based on title
  */
 export function getMissionIcon(title: string): string {
+  if (title.includes('Free Talk')) return '💬';
   if (title.includes('Coffee')) return '☕';
   if (title.includes('Bus')) return '🚌';
   if (title.includes('dinner')) return '🍕';

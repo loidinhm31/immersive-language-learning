@@ -15,12 +15,23 @@ export interface MissionCardProps {
 
 export function MissionCard({ mission, onClick }: MissionCardProps) {
   const icon = getMissionIcon(mission.title);
+  const isFreestyle = mission.freestyle === true;
 
   return (
-    <Card variant="interactive" className="cursor-pointer flex flex-col h-full" onClick={onClick}>
+    <Card
+      variant="interactive"
+      className={`cursor-pointer flex flex-col h-full ${isFreestyle ? 'border-2 border-dashed border-accent-primary bg-accent-primary/5' : ''}`}
+      onClick={onClick}
+    >
       <div className="mb-4 flex justify-between items-start">
         <div className="text-4xl leading-none">{icon}</div>
-        <Badge difficulty={mission.difficulty}>{mission.difficulty}</Badge>
+        {isFreestyle ? (
+          <span className="text-xs font-bold uppercase tracking-wider text-accent-primary bg-accent-primary/10 px-2 py-1 rounded-full">
+            No Limit
+          </span>
+        ) : (
+          <Badge difficulty={mission.difficulty}>{mission.difficulty}</Badge>
+        )}
       </div>
 
       <h3 className="m-0 mb-2 text-xl leading-tight font-heading font-bold text-text-main">
@@ -30,7 +41,7 @@ export function MissionCard({ mission, onClick }: MissionCardProps) {
       <p className="m-0 text-base opacity-70 leading-relaxed text-text-sub">{mission.desc}</p>
 
       <div className="mt-auto pt-4 text-sm text-accent-secondary font-bold opacity-80">
-        Roleplay: {mission.target_role}
+        {isFreestyle ? 'Chat Partner' : `Roleplay: ${mission.target_role}`}
       </div>
     </Card>
   );

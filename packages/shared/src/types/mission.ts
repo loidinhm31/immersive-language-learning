@@ -11,6 +11,7 @@ export interface Mission {
   difficulty: Difficulty;
   desc: string;
   target_role: string;
+  freestyle?: boolean;
 }
 
 export interface Language {
@@ -65,7 +66,7 @@ export interface SessionResult {
   };
 }
 
-export type SessionDuration = 180 | 300 | 600;
+export type SessionDuration = 180 | 300 | 600 | 1800;
 
 export interface AppState {
   view: AppView;

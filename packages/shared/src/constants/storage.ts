@@ -29,6 +29,7 @@ export const SESSION_DURATIONS = {
   SHORT: 180, // 3 minutes
   MEDIUM: 300, // 5 minutes
   LONG: 600, // 10 minutes
+  UNLIMITED: 1800, // 30 minutes (freestyle)
 } as const;
 
 export const DEFAULT_SESSION_DURATION = SESSION_DURATIONS.SHORT;

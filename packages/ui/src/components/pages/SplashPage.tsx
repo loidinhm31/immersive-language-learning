@@ -5,8 +5,8 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { TextCycler } from '../molecules/TextCycler';
-import { Button } from '../atoms/Button';
+import { TextCycler } from '../molecules';
+import { Button } from '../atoms';
 
 const START_TRANSLATIONS = [
   'ابدأ',

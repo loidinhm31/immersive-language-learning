@@ -3,23 +3,27 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { ArrowLeft, Square, CheckCircle, RotateCcw } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, CheckCircle, RotateCcw, Square } from 'lucide-react';
 import type {
-  Mission,
   AppMode,
-  SessionResult,
   CompleteMissionArgs,
+  Mission,
   SessionDuration,
+  SessionResult,
   SessionStats,
 } from '@immersive-lang/shared';
-import { Button } from '../atoms/Button';
-import { AudioVisualizer } from '../molecules/AudioVisualizer';
-import { ErrorDialog } from '../molecules/ErrorDialog';
-import { LiveTranscript, type LiveTranscriptRef } from '../molecules/LiveTranscript';
-import { SessionTimer } from '../molecules/SessionTimer';
-import { TokenUsage } from '../molecules/TokenUsage';
-import { useGeminiLive, type SessionError } from '../../hooks/useGeminiLive';
+import { SESSION_DURATIONS } from '@immersive-lang/shared';
+import { Button } from '../atoms';
+import {
+  AudioVisualizer,
+  ErrorDialog,
+  LiveTranscript,
+  type LiveTranscriptRef,
+  SessionTimer,
+  TokenUsage,
+} from '../molecules';
+import { type SessionError, useGeminiLive } from '../../hooks/useGeminiLive';
 
 /**
  * Plays an audio file safely, handling the AbortError that occurs when
@@ -59,6 +63,44 @@ function buildSystemInstructions(
   const targetRole = mission.target_role || 'a local native speaker';
   const missionTitle = mission.title;
   const missionDesc = mission.desc;
+
+  // Freestyle mode - open conversation with no specific objective
+  if (mission.freestyle) {
+    return `
+CONVERSATION PARTNER INSTRUCTION:
+You are a friendly, engaging native speaker of ${language} having a natural conversation with someone learning the language.
+The user speaks ${fromLanguage} natively and wants to practice ${language} through free-form conversation.
+
+YOUR PERSONALITY:
+- Be warm, curious, and encouraging
+- Show genuine interest in what the user shares
+- Have your own opinions and experiences to share
+- Be patient with language mistakes but keep the conversation flowing
+
+CONVERSATION STYLE (Gemini Live Best Practices):
+1. **Natural Turn-Taking**: Use the proactive audio feature - wait for natural pauses before responding. Don't interrupt.
+2. **Active Listening**: Acknowledge what the user says before adding your own thoughts. Use backchannels like "mmhmm", "I see", "interesting!"
+3. **Open-Ended Questions**: Ask follow-up questions to keep the conversation going. Show curiosity about the user's life, interests, and opinions.
+4. **Topic Flexibility**: Go wherever the conversation flows naturally. You can discuss hobbies, travel, food, culture, daily life, dreams, opinions - anything!
+5. **Balanced Exchange**: Share your own (fictional) experiences and opinions too. Don't just interview the user.
+6. **Adaptive Difficulty**: Match the user's language level. If they're struggling, simplify. If they're fluent, use more natural speech.
+
+LANGUAGE SUPPORT:
+- Speak primarily in ${language}, using natural rhythm and common expressions.
+- If the user struggles, you may briefly clarify in ${fromLanguage}, then return to ${language}.
+- Gently model correct phrasing by naturally incorporating corrections into your responses.
+- Don't lecture about grammar unless asked.
+
+SESSION ENDING:
+When the user says something like "I have to go", "goodbye", "I need to leave", or similar farewell phrases:
+1. Say a warm goodbye in ${language}
+2. THEN call the "complete_mission" tool with:
+   - score: 0 (freestyle sessions are unscored)
+   - feedback_pointers: Provide 3 encouraging observations about the conversation (topics covered, phrases used well, areas to explore next time) in ${fromLanguage}
+
+REMEMBER: This is casual practice, not a test. Keep it fun and conversational!
+`;
+  }
 
   if (mode === 'immergo_teacher') {
     return `
@@ -271,7 +313,7 @@ export function ChatPage({
           systemInstructions,
           enableTranscription,
           enableTranscription,
-          sessionDuration
+          effectiveSessionDuration
         );
 
         // Play start sound using preloaded audio
@@ -288,6 +330,10 @@ export function ChatPage({
   };
 
   const isTeacherMode = mode === 'immergo_teacher';
+  const isFreestyle = mission.freestyle === true;
+
+  // Use unlimited duration for freestyle sessions
+  const effectiveSessionDuration = isFreestyle ? SESSION_DURATIONS.UNLIMITED : sessionDuration;
 
   return (
     <div className="relative min-h-screen flex flex-col max-w-[520px] mx-auto px-6 pb-8">
@@ -299,8 +345,8 @@ export function ChatPage({
         <ArrowLeft size={24} />
       </button>
 
-      {/* Session Timer */}
-      {isActive && isConnected && (
+      {/* Session Timer - hidden for freestyle */}
+      {isActive && isConnected && !isFreestyle && (
         <SessionTimer
           remainingTime={remainingTime}
           sessionDuration={currentSessionDuration}
@@ -381,12 +427,18 @@ export function ChatPage({
           {isActive ? (
             <span className="flex items-center gap-3">
               <Square size={20} />
-              <span className="font-extrabold text-lg tracking-wide uppercase">End Mission</span>
+              <span className="font-extrabold text-lg tracking-wide uppercase">
+                {isFreestyle ? 'End Chat' : 'End Mission'}
+              </span>
             </span>
           ) : (
             <>
-              <span className="text-xl font-extrabold mb-0.5 tracking-wide">Start Mission</span>
-              <span className="text-sm opacity-90 italic">You start the conversation!</span>
+              <span className="text-xl font-extrabold mb-0.5 tracking-wide">
+                {isFreestyle ? 'Start Chatting' : 'Start Mission'}
+              </span>
+              <span className="text-sm opacity-90 italic">
+                {isFreestyle ? 'Say "I have to go" to end' : 'You start the conversation!'}
+              </span>
             </>
           )}
         </Button>
@@ -456,10 +508,12 @@ export function ChatPage({
               <CheckCircle size={40} className="text-green-600" />
             </div>
             <h3 className="mb-2 text-2xl font-heading font-bold text-accent-primary">
-              Mission Complete?
+              {isFreestyle ? 'End Conversation?' : 'Mission Complete?'}
             </h3>
             <p className="mb-6 text-gray-600 leading-relaxed">
-              Gemini thinks you've successfully completed the mission! Do you agree?
+              {isFreestyle
+                ? 'Ready to wrap up this conversation?'
+                : "Gemini thinks you've successfully completed the mission! Do you agree?"}
             </p>
 
             <div className="flex flex-col gap-3">

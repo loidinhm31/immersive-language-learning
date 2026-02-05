@@ -5,7 +5,7 @@
 
 import { AlertTriangle, Clock, MessageSquare, Mic } from 'lucide-react';
 import type { SessionStats, UsageMetadata } from '@immersive-lang/shared';
-import { Button } from '../atoms/Button';
+import { Button } from '../atoms';
 
 export interface ErrorDialogProps {
   isOpen: boolean;
