@@ -4,20 +4,22 @@
  */
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { ArrowLeft, Square } from 'lucide-react';
+import { ArrowLeft, Square, CheckCircle, RotateCcw } from 'lucide-react';
 import type {
   Mission,
   AppMode,
   SessionResult,
   CompleteMissionArgs,
   SessionDuration,
+  SessionStats,
 } from '@immersive-lang/shared';
 import { Button } from '../atoms/Button';
 import { AudioVisualizer } from '../molecules/AudioVisualizer';
+import { ErrorDialog } from '../molecules/ErrorDialog';
 import { LiveTranscript, type LiveTranscriptRef } from '../molecules/LiveTranscript';
 import { SessionTimer } from '../molecules/SessionTimer';
 import { TokenUsage } from '../molecules/TokenUsage';
-import { useGeminiLive } from '../../hooks/useGeminiLive';
+import { useGeminiLive, type SessionError } from '../../hooks/useGeminiLive';
 
 /**
  * Plays an audio file safely, handling the AbortError that occurs when
@@ -127,6 +129,9 @@ export function ChatPage({
   const [isActive, setIsActive] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('');
   const [showRateLimitDialog, setShowRateLimitDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorStats, setErrorStats] = useState<SessionStats | null>(null);
+  const [pendingCompletion, setPendingCompletion] = useState<CompleteMissionArgs | null>(null);
   const transcriptRef = useRef<{ transcriptRef?: LiveTranscriptRef } | null>(null);
 
   // Preload audio files to avoid AbortError when playing during state changes
@@ -144,25 +149,15 @@ export function ChatPage({
 
   const handleMissionComplete = useCallback(
     (args: CompleteMissionArgs) => {
-      console.log('🏆 Mission Complete!', args);
+      console.log('🏆 Mission Complete signal from Gemini!', args);
 
       // Play winner sound using preloaded audio
       playSound(sounds.winnerSound);
 
-      // Map score to level
-      const levels: Record<number, string> = { 1: 'Tiro', 2: 'Proficiens', 3: 'Peritus' };
-      const level = levels[args.score] || 'Proficiens';
-
-      // Delay to allow final audio to play
-      setTimeout(() => {
-        onComplete({
-          score: args.score.toString(),
-          level,
-          notes: args.feedback_pointers,
-        });
-      }, 2500);
+      // Store pending completion - wait for user confirmation
+      setPendingCompletion(args);
     },
-    [onComplete, sounds.winnerSound]
+    [sounds.winnerSound]
   );
 
   const handleTranscriptInput = useCallback((text: string, finished: boolean) => {
@@ -186,15 +181,16 @@ export function ChatPage({
     }
   }, []);
 
-  const handleError = useCallback((error: Error & { status?: number }) => {
+  const handleError = useCallback((error: SessionError) => {
     // Reset active state when session errors out
     setIsActive(false);
 
     if (error.status === 429) {
       setShowRateLimitDialog(true);
     } else {
-      // Show error message to user
-      alert('Session error: ' + error.message);
+      // Show error dialog to user with stats
+      setErrorMessage(error.message);
+      setErrorStats(error.stats || null);
     }
   }, []);
 
@@ -210,6 +206,7 @@ export function ChatPage({
     remainingTime,
     sessionDuration: currentSessionDuration,
     tokenUsage,
+    sessionStats,
   } = useGeminiLive({
     onTranscriptInput: handleTranscriptInput,
     onTranscriptOutput: handleTranscriptOutput,
@@ -217,6 +214,35 @@ export function ChatPage({
     onMissionComplete: handleMissionComplete,
     onError: handleError,
   });
+
+  // Confirmation handlers (must be after useGeminiLive to access disconnect)
+  const handleConfirmCompletion = useCallback(() => {
+    if (!pendingCompletion) return;
+
+    // Map score to level
+    const levels: Record<number, string> = { 1: 'Tiro', 2: 'Proficiens', 3: 'Peritus' };
+    const level = levels[pendingCompletion.score] || 'Proficiens';
+
+    // Disconnect and complete
+    disconnect();
+    setIsActive(false);
+    setPendingCompletion(null);
+
+    onComplete({
+      score: pendingCompletion.score.toString(),
+      level,
+      notes: pendingCompletion.feedback_pointers,
+      elapsedSeconds: pendingCompletion.sessionStats?.elapsedSeconds,
+      messageCount: pendingCompletion.sessionStats?.messageCount,
+      audioChunksSent: pendingCompletion.sessionStats?.audioChunksSent,
+      tokenUsage: pendingCompletion.tokenUsage,
+    });
+  }, [pendingCompletion, disconnect, onComplete]);
+
+  const handleContinuePractice = useCallback(() => {
+    // User wants to continue practicing - dismiss the confirmation
+    setPendingCompletion(null);
+  }, []);
 
   // Update status text
   useEffect(() => {
@@ -406,6 +432,56 @@ export function ChatPage({
             <Button variant="primary" onClick={() => setShowRateLimitDialog(false)}>
               Got it
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Dialog */}
+      <ErrorDialog
+        isOpen={!!errorMessage}
+        message={errorMessage || ''}
+        stats={errorStats}
+        tokenUsage={tokenUsage}
+        onClose={() => {
+          setErrorMessage(null);
+          setErrorStats(null);
+        }}
+      />
+
+      {/* Mission Completion Confirmation Dialog */}
+      {pendingCompletion && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-4">
+          <div className="bg-white text-gray-900 p-8 rounded-2xl max-w-[500px] w-full text-center shadow-lg">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle size={40} className="text-green-600" />
+            </div>
+            <h3 className="mb-2 text-2xl font-heading font-bold text-accent-primary">
+              Mission Complete?
+            </h3>
+            <p className="mb-6 text-gray-600 leading-relaxed">
+              Gemini thinks you've successfully completed the mission! Do you agree?
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleConfirmCompletion}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <CheckCircle size={20} />
+                Yes, I'm done!
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={handleContinuePractice}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <RotateCcw size={20} />
+                Not yet, continue practicing
+              </Button>
+            </div>
           </div>
         </div>
       )}

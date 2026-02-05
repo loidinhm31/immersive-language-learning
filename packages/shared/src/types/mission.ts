@@ -55,6 +55,14 @@ export interface SessionResult {
   score?: string;
   level?: string;
   notes?: string[];
+  elapsedSeconds?: number;
+  messageCount?: number;
+  audioChunksSent?: number;
+  tokenUsage?: {
+    promptTokenCount: number;
+    candidatesTokenCount: number;
+    totalTokenCount: number;
+  };
 }
 
 export type SessionDuration = 180 | 300 | 600;

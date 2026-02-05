@@ -11,6 +11,7 @@ export const MultimodalLiveResponseType = {
   TURN_COMPLETE: 'TURN COMPLETE',
   TOOL_CALL: 'TOOL_CALL',
   ERROR: 'ERROR',
+  SESSION_END: 'SESSION_END',
   INPUT_TRANSCRIPTION: 'INPUT_TRANSCRIPTION',
   OUTPUT_TRANSCRIPTION: 'OUTPUT_TRANSCRIPTION',
   USAGE_METADATA: 'USAGE_METADATA',
@@ -30,6 +31,7 @@ export interface ToolCallData {
     args: Record<string, unknown>;
     id?: string;
   }>;
+  sessionStats?: SessionStats;
 }
 
 export interface UsageMetadata {
@@ -38,9 +40,30 @@ export interface UsageMetadata {
   totalTokenCount: number;
 }
 
+export interface SessionStats {
+  messageCount: number;
+  audioChunksSent: number;
+  elapsedSeconds: number;
+  totalTokenCount: number;
+  promptTokenCount: number;
+  candidatesTokenCount: number;
+}
+
+export interface ErrorData {
+  message: string;
+  stats?: SessionStats;
+}
+
 export interface GeminiResponse {
   type: MultimodalLiveResponseTypeValue;
-  data: string | ArrayBuffer | TranscriptionData | ToolCallData | UsageMetadata;
+  data:
+    | string
+    | ArrayBuffer
+    | TranscriptionData
+    | ToolCallData
+    | UsageMetadata
+    | SessionStats
+    | ErrorData;
   endOfTurn: boolean;
 }
 
@@ -86,4 +109,6 @@ export interface GeminiLiveConfig {
 export interface CompleteMissionArgs {
   score: number;
   feedback_pointers: string[];
+  sessionStats?: SessionStats;
+  tokenUsage?: UsageMetadata;
 }

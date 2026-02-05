@@ -4,6 +4,7 @@
  */
 
 export { AudioVisualizer, type AudioVisualizerProps } from './AudioVisualizer';
+export { ErrorDialog, type ErrorDialogProps } from './ErrorDialog';
 export {
   LiveTranscript,
   useTranscriptRef,

@@ -2,6 +2,10 @@
 //!
 //! Handles bidirectional streaming between the server and Gemini Live API.
 
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
+use std::time::Instant;
+
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use futures_util::{SinkExt, StreamExt};
 use tokio::sync::mpsc;
@@ -9,10 +13,21 @@ use tokio_tungstenite::{connect_async, tungstenite::Message};
 
 use crate::{
     config::Config,
-    handlers::websocket::ClientEvent,
+    handlers::websocket::{ClientEvent, SessionStats},
 };
 
 use super::messages::*;
+
+/// Safely truncate a UTF-8 string to approximately `max_chars` characters.
+/// This avoids panicking when slicing in the middle of multi-byte characters.
+fn truncate_string(s: &str, max_chars: usize) -> String {
+    if s.chars().count() <= max_chars {
+        s.to_string()
+    } else {
+        let truncated: String = s.chars().take(max_chars).collect();
+        format!("{}...", truncated)
+    }
+}
 
 /// Gemini Live API client.
 ///
@@ -23,6 +38,7 @@ pub struct GeminiLiveClient {
     audio_rx: mpsc::Receiver<Vec<u8>>,
     text_rx: mpsc::Receiver<String>,
     event_tx: mpsc::Sender<ClientEvent>,
+    session_start: Instant,
 }
 
 impl GeminiLiveClient {
@@ -39,6 +55,7 @@ impl GeminiLiveClient {
             audio_rx,
             text_rx,
             event_tx,
+            session_start: Instant::now(),
         }
     }
 
@@ -108,16 +125,19 @@ impl GeminiLiveClient {
         // Spawn task to send audio to Gemini
         let (gemini_send_tx, mut gemini_send_rx) = mpsc::channel::<String>(100);
 
+        // Shared counter for audio chunks sent
+        let audio_chunk_count = Arc::new(AtomicU64::new(0));
+        let audio_chunk_count_clone = audio_chunk_count.clone();
+
         let audio_sender_tx = gemini_send_tx.clone();
         let sample_rate = self.config.input_sample_rate;
         let mut audio_rx = self.audio_rx;
 
         tokio::spawn(async move {
-            let mut audio_chunk_count = 0u64;
             while let Some(audio_data) = audio_rx.recv().await {
-                audio_chunk_count += 1;
-                if audio_chunk_count % 50 == 1 {
-                    tracing::debug!("Received audio chunk #{} from client ({} bytes)", audio_chunk_count, audio_data.len());
+                let count = audio_chunk_count_clone.fetch_add(1, Ordering::Relaxed) + 1;
+                if count % 50 == 1 {
+                    tracing::debug!("Received audio chunk #{} from client ({} bytes)", count, audio_data.len());
                 }
                 let msg = RealtimeInputMessage {
                     realtime_input: RealtimeInput::audio_pcm(&audio_data, sample_rate),
@@ -126,7 +146,7 @@ impl GeminiLiveClient {
                     let _ = audio_sender_tx.send(json).await;
                 }
             }
-            tracing::debug!("Audio sender task ended after {} chunks", audio_chunk_count);
+            tracing::debug!("Audio sender task ended after {} chunks", audio_chunk_count_clone.load(Ordering::Relaxed));
         });
 
         // Spawn task to send text to Gemini
@@ -174,8 +194,17 @@ impl GeminiLiveClient {
 
         // Process responses from Gemini
         let event_tx = self.event_tx;
+        let session_start = self.session_start;
 
         tracing::debug!("Starting main receive loop from Gemini...");
+
+        // Keep track of recent messages for debugging policy violations
+        let mut recent_messages: std::collections::VecDeque<String> = std::collections::VecDeque::with_capacity(5);
+
+        // Track latest token usage from Gemini (values are cumulative per session)
+        let mut last_total_tokens: u32 = 0;
+        let mut last_prompt_tokens: u32 = 0;
+        let mut last_candidates_tokens: u32 = 0;
 
         let mut msg_count = 0u64;
         while let Some(msg) = ws_receiver.next().await {
@@ -183,7 +212,14 @@ impl GeminiLiveClient {
             match msg {
                 Ok(Message::Text(text)) => {
                     tracing::debug!("Received text message from Gemini ({} bytes)", text.len());
-                    if let Err(e) = Self::handle_gemini_message(&text, &event_tx).await {
+                    // Track recent messages for debugging
+                    if recent_messages.len() >= 5 {
+                        recent_messages.pop_front();
+                    }
+                    let preview = truncate_string(&text, 200);
+                    recent_messages.push_back(preview);
+
+                    if let Err(e) = Self::handle_gemini_message(&text, &event_tx, msg_count, &audio_chunk_count, &session_start, &mut last_total_tokens, &mut last_prompt_tokens, &mut last_candidates_tokens).await {
                         tracing::error!("Error handling Gemini message: {}", e);
                     }
                 }
@@ -193,7 +229,14 @@ impl GeminiLiveClient {
                     match String::from_utf8(data.to_vec()) {
                         Ok(text) => {
                             tracing::debug!("Received binary JSON from Gemini ({} bytes)", text.len());
-                            if let Err(e) = Self::handle_gemini_message(&text, &event_tx).await {
+                            // Track recent messages for debugging
+                            if recent_messages.len() >= 5 {
+                                recent_messages.pop_front();
+                            }
+                            let preview = truncate_string(&text, 200);
+                            recent_messages.push_back(preview);
+
+                            if let Err(e) = Self::handle_gemini_message(&text, &event_tx, msg_count, &audio_chunk_count, &session_start, &mut last_total_tokens, &mut last_prompt_tokens, &mut last_candidates_tokens).await {
                                 tracing::error!("Error handling Gemini message: {}", e);
                             }
                         }
@@ -209,31 +252,85 @@ impl GeminiLiveClient {
                     }
                 }
                 Ok(Message::Close(reason)) => {
+                    let audio_chunks = audio_chunk_count.load(Ordering::Relaxed);
+                    let elapsed = session_start.elapsed().as_secs_f64();
+                    let stats = SessionStats {
+                        message_count: msg_count,
+                        audio_chunks_sent: audio_chunks,
+                        elapsed_seconds: elapsed,
+                        total_token_count: last_total_tokens,
+                        prompt_token_count: last_prompt_tokens,
+                        candidates_token_count: last_candidates_tokens,
+                    };
+
                     if let Some(ref frame) = reason {
                         tracing::warn!(
-                            "Gemini closed - Code: {:?}, Reason: {}",
+                            "Gemini closed - Code: {:?}, Reason: {} (after {} messages, {} audio chunks, {:.1}s elapsed, {} tokens)",
                             frame.code,
-                            frame.reason
+                            frame.reason,
+                            msg_count,
+                            audio_chunks,
+                            elapsed,
+                            last_total_tokens
                         );
+
+                        // Determine if this is likely a session limit vs early policy error
+                        let is_likely_session_limit = msg_count > 100; // If we got >100 messages, features work
+
                         if frame.reason.contains("Policy") || frame.reason.contains("not implemented") || frame.reason.contains("not supported") || frame.reason.contains("not enabled") {
-                            tracing::error!(
-                                "POLICY VIOLATION DETECTED - Check: model support for Live API, incompatible feature combinations (e.g., transcription + tools), API key restrictions, or region limitations"
-                            );
-                            // Send error to client before closing
-                            let error_message = format!(
-                                "Session ended: {}. This may be due to an unsupported feature combination or API limitation.",
-                                frame.reason
-                            );
-                            let _ = event_tx.send(ClientEvent::Error(error_message)).await;
+                            if is_likely_session_limit {
+                                // Session ran for a while - this is likely a context/duration limit
+                                tracing::info!(
+                                    "Session ended after {} messages, {} audio chunks - likely hit Gemini's session or context limit",
+                                    msg_count,
+                                    audio_chunks
+                                );
+                                let error_message = "Session ended: Gemini's session limit reached. Please start a new conversation.".to_string();
+                                let _ = event_tx.send(ClientEvent::Error { message: error_message, stats: Some(stats) }).await;
+                            } else {
+                                // Early termination - likely a real feature incompatibility
+                                tracing::error!(
+                                    "POLICY VIOLATION DETECTED - Check: model support for Live API, incompatible feature combinations (e.g., transcription + tools), API key restrictions, or region limitations"
+                                );
+                                // Log recent messages for debugging
+                                tracing::error!("Last {} messages before policy violation:", recent_messages.len());
+                                for (i, msg) in recent_messages.iter().enumerate() {
+                                    tracing::error!("  [{}]: {}", i + 1, msg);
+                                }
+                                // Send error to client before closing
+                                let error_message = format!(
+                                    "Session ended: {}. This may be due to an unsupported feature combination or API limitation.",
+                                    frame.reason
+                                );
+                                let _ = event_tx.send(ClientEvent::Error { message: error_message, stats: Some(stats) }).await;
+                            }
+                        } else {
+                            // Normal close with a reason
+                            let _ = event_tx.send(ClientEvent::SessionEnd { stats }).await;
                         }
                     } else {
-                        tracing::info!("Gemini closed connection (no reason provided)");
+                        tracing::info!("Gemini closed connection (no reason provided) after {} messages, {} audio chunks", msg_count, audio_chunks);
+                        let _ = event_tx.send(ClientEvent::SessionEnd { stats }).await;
                     }
                     break;
                 }
                 Ok(Message::Ping(_)) | Ok(Message::Pong(_)) => {}
                 Err(e) => {
-                    tracing::error!("Gemini WebSocket error: {}", e);
+                    let audio_chunks = audio_chunk_count.load(Ordering::Relaxed);
+                    let elapsed = session_start.elapsed().as_secs_f64();
+                    tracing::error!("Gemini WebSocket error: {} (after {} messages, {} audio chunks, {:.1}s elapsed, {} tokens)", e, msg_count, audio_chunks, elapsed, last_total_tokens);
+                    let stats = SessionStats {
+                        message_count: msg_count,
+                        audio_chunks_sent: audio_chunks,
+                        elapsed_seconds: elapsed,
+                        total_token_count: last_total_tokens,
+                        prompt_token_count: last_prompt_tokens,
+                        candidates_token_count: last_candidates_tokens,
+                    };
+                    let _ = event_tx.send(ClientEvent::Error {
+                        message: format!("Connection error: {}", e),
+                        stats: Some(stats),
+                    }).await;
                     break;
                 }
                 _ => {}
@@ -241,6 +338,7 @@ impl GeminiLiveClient {
         }
         tracing::debug!("Gemini receive loop ended after {} messages", msg_count);
 
+        // Send close signal (SessionEnd/Error already sent from handlers above)
         let _ = event_tx.send(ClientEvent::Close).await;
         send_handle.abort();
 
@@ -291,8 +389,17 @@ impl GeminiLiveClient {
             }
         }
 
+        // Enable context window compression to extend sessions beyond the default limit.
+        // Without this, sessions hit the 128K context window and Gemini closes with a Policy error.
+        let context_window_compression = Some(ContextWindowCompression {
+            trigger_tokens: 100000,
+            sliding_window: SlidingWindow {
+                target_tokens: 50000,
+            },
+        });
+
         tracing::info!(
-            "Setup config - Model: {}, Has tools: {}, Has system_instruction: {}",
+            "Setup config - Model: {}, Has tools: {}, Has system_instruction: {}, Context compression: enabled (trigger: 100K, target: 50K)",
             model,
             tools.is_some(),
             system_instruction.is_some()
@@ -304,6 +411,7 @@ impl GeminiLiveClient {
                 generation_config: Some(generation_config),
                 system_instruction,
                 tools,
+                context_window_compression,
             },
         }
     }
@@ -312,9 +420,15 @@ impl GeminiLiveClient {
     async fn handle_gemini_message(
         text: &str,
         event_tx: &mpsc::Sender<ClientEvent>,
+        msg_count: u64,
+        audio_chunk_count: &Arc<AtomicU64>,
+        session_start: &Instant,
+        last_total_tokens: &mut u32,
+        last_prompt_tokens: &mut u32,
+        last_candidates_tokens: &mut u32,
     ) -> anyhow::Result<()> {
         // Log raw message for debugging (truncate if too long)
-        let preview = if text.len() > 500 { &text[..500] } else { text };
+        let preview = truncate_string(text, 500);
         tracing::debug!("Raw Gemini message: {}", preview);
 
         // First parse as generic JSON to see actual field names
@@ -420,6 +534,7 @@ impl GeminiLiveClient {
                     server_content: Some(client_content),
                     tool_call: None,
                     usage_metadata: None,
+                    session_stats: None,
                 };
                 let json = serde_json::to_string(&event_msg)?;
                 event_tx.send(ClientEvent::Json(json)).await?;
@@ -434,6 +549,11 @@ impl GeminiLiveClient {
                     function_calls: tool_call.function_calls.into_iter().map(|fc| fc.into()).collect(),
                 }),
                 usage_metadata: None,
+                session_stats: Some(ClientSessionStats {
+                    message_count: msg_count,
+                    audio_chunks_sent: audio_chunk_count.load(Ordering::Relaxed),
+                    elapsed_seconds: session_start.elapsed().as_secs_f64(),
+                }),
             };
             let json = serde_json::to_string(&event_msg)?;
             event_tx.send(ClientEvent::Json(json)).await?;
@@ -444,6 +564,11 @@ impl GeminiLiveClient {
             let prompt = usage.prompt_token_count.unwrap_or(0);
             let candidates = usage.candidates_token_count.unwrap_or(0);
             let total = usage.total_token_count.unwrap_or(0);
+
+            // Update latest token counts
+            *last_total_tokens = total;
+            *last_prompt_tokens = prompt;
+            *last_candidates_tokens = candidates;
 
             tracing::info!(
                 "Token usage - prompt: {}, candidates: {}, total: {}",
@@ -458,6 +583,7 @@ impl GeminiLiveClient {
                     candidates_token_count: candidates,
                     total_token_count: total,
                 }),
+                session_stats: None,
             };
             let json = serde_json::to_string(&event_msg)?;
             event_tx.send(ClientEvent::Json(json)).await?;

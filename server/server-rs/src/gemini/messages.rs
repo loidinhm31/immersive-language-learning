@@ -21,6 +21,19 @@ pub struct SetupConfig {
     pub system_instruction: Option<Content>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context_window_compression: Option<ContextWindowCompression>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ContextWindowCompression {
+    pub trigger_tokens: u32,
+    pub sliding_window: SlidingWindow,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SlidingWindow {
+    pub target_tokens: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -246,6 +259,17 @@ pub struct ClientEventMessage {
     pub tool_call: Option<ClientToolCall>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub usage_metadata: Option<ClientUsageMetadata>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_stats: Option<ClientSessionStats>,
+}
+
+/// Session stats snapshot forwarded with tool calls.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClientSessionStats {
+    pub message_count: u64,
+    pub audio_chunks_sent: u64,
+    pub elapsed_seconds: f64,
 }
 
 /// Token usage metadata for browser client (camelCase).

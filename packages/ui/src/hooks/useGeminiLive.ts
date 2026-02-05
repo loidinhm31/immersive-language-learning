@@ -11,15 +11,24 @@ import {
   type TranscriptionData,
   type ToolCallData,
   type UsageMetadata,
+  type SessionStats,
+  type ErrorData,
   type CompleteMissionArgs,
 } from '@immersive-lang/shared';
+
+export interface SessionError {
+  message: string;
+  stats?: SessionStats;
+  status?: number;
+}
 
 export interface UseGeminiLiveOptions {
   onTranscriptInput?: (text: string, finished: boolean) => void;
   onTranscriptOutput?: (text: string, finished: boolean) => void;
   onTurnComplete?: () => void;
   onMissionComplete?: (args: CompleteMissionArgs) => void;
-  onError?: (error: Error) => void;
+  onError?: (error: SessionError) => void;
+  onSessionEnd?: (stats: SessionStats) => void;
 }
 
 export interface UseGeminiLiveReturn {
@@ -39,11 +48,18 @@ export interface UseGeminiLiveReturn {
   remainingTime: number | null;
   sessionDuration: number | null;
   tokenUsage: UsageMetadata | null;
+  sessionStats: SessionStats | null;
 }
 
 export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLiveReturn {
-  const { onTranscriptInput, onTranscriptOutput, onTurnComplete, onMissionComplete, onError } =
-    options;
+  const {
+    onTranscriptInput,
+    onTranscriptOutput,
+    onTurnComplete,
+    onMissionComplete,
+    onError,
+    onSessionEnd,
+  } = options;
 
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -54,11 +70,13 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState<number | null>(null);
   const [tokenUsage, setTokenUsage] = useState<UsageMetadata | null>(null);
+  const [sessionStats, setSessionStats] = useState<SessionStats | null>(null);
 
   const clientRef = useRef<GeminiLiveAPI | null>(null);
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
   const audioPlayerRef = useRef<AudioPlayer | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tokenUsageRef = useRef<UsageMetadata | null>(null);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -138,8 +156,13 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
         // Set up response handler
         client.onReceiveResponse = (response: GeminiResponse) => {
           if (response.type === MultimodalLiveResponseType.ERROR) {
-            const errorMessage = response.data as string;
-            console.error('❌ [Gemini] Error received:', errorMessage);
+            const errorData = response.data as ErrorData;
+            console.error(
+              '❌ [Gemini] Error received:',
+              errorData.message,
+              'Stats:',
+              errorData.stats
+            );
             // Stop audio streaming and disconnect
             audioStreamerRef.current?.stop();
             audioPlayerRef.current?.interrupt();
@@ -150,8 +173,19 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
             }
             setIsConnected(false);
             setRemainingTime(null);
+            // Store session stats
+            if (errorData.stats) {
+              setSessionStats(errorData.stats);
+            }
             // Notify the error callback
-            onError?.(new Error(errorMessage));
+            onError?.({ message: errorData.message, stats: errorData.stats });
+          } else if (response.type === MultimodalLiveResponseType.SESSION_END) {
+            const stats = response.data as SessionStats;
+            console.log('🏁 [Gemini] Session ended. Stats:', stats);
+            // Store session stats
+            setSessionStats(stats);
+            // Notify the session end callback
+            onSessionEnd?.(stats);
           } else if (response.type === MultimodalLiveResponseType.AUDIO) {
             audioPlayerRef.current?.play(response.data as string | ArrayBuffer);
           } else if (response.type === MultimodalLiveResponseType.TURN_COMPLETE) {
@@ -160,7 +194,16 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
             const toolData = response.data as ToolCallData;
             if (toolData.functionCalls) {
               toolData.functionCalls.forEach(fc => {
-                client.callFunction(fc.name, fc.args as Record<string, unknown>);
+                const args = fc.args as Record<string, unknown>;
+                // Inject session stats and token usage for complete_mission
+                if (fc.name === 'complete_mission') {
+                  if (toolData.sessionStats) {
+                    args.sessionStats = toolData.sessionStats;
+                  }
+                  // Get latest token usage from state ref
+                  args.tokenUsage = tokenUsageRef.current;
+                }
+                client.callFunction(fc.name, args);
               });
             }
           } else if (response.type === MultimodalLiveResponseType.INPUT_TRANSCRIPTION) {
@@ -172,13 +215,18 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
           } else if (response.type === MultimodalLiveResponseType.USAGE_METADATA) {
             const usage = response.data as UsageMetadata;
             setTokenUsage(prev => {
-              if (!prev) return usage;
+              if (!prev) {
+                tokenUsageRef.current = usage;
+                return usage;
+              }
               // Accumulate token counts across messages
-              return {
+              const accumulated = {
                 promptTokenCount: prev.promptTokenCount + usage.promptTokenCount,
                 candidatesTokenCount: prev.candidatesTokenCount + usage.candidatesTokenCount,
                 totalTokenCount: prev.totalTokenCount + usage.totalTokenCount,
               };
+              tokenUsageRef.current = accumulated;
+              return accumulated;
             });
           }
         };
@@ -193,6 +241,9 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
             clearInterval(timerIntervalRef.current);
             timerIntervalRef.current = null;
           }
+          // Stop audio streaming
+          audioStreamerRef.current?.stop();
+          audioPlayerRef.current?.interrupt();
           setIsConnected(false);
           setRemainingTime(null);
         };
@@ -242,7 +293,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
         }
       } catch (error) {
         console.error('Failed to connect:', error);
-        onError?.(error as Error);
+        onError?.({ message: (error as Error).message });
         throw error;
       } finally {
         setIsConnecting(false);
@@ -256,6 +307,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
       onTurnComplete,
       onMissionComplete,
       onError,
+      onSessionEnd,
     ]
   );
 
@@ -282,6 +334,8 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
     setRemainingTime(null);
     setSessionDuration(null);
     setTokenUsage(null);
+    setSessionStats(null);
+    tokenUsageRef.current = null;
   }, []);
 
   return {
@@ -296,5 +350,6 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
     remainingTime,
     sessionDuration,
     tokenUsage,
+    sessionStats,
   };
 }

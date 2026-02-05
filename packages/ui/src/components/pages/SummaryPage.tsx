@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-import { AlertCircle, Star, Github } from 'lucide-react';
+import { AlertCircle, Star, Github, Clock, MessageSquare, Mic, Coins } from 'lucide-react';
 import type { SessionResult } from '@immersive-lang/shared';
 import { SCORE_LEVELS } from '@immersive-lang/shared';
 import { Button } from '../atoms/Button';
@@ -125,6 +125,67 @@ export function SummaryPage({ result, onBackToMissions }: SummaryPageProps) {
                   </li>
                 ))}
               </ul>
+            </Card>
+          )}
+
+          {(result.elapsedSeconds || result.messageCount || result.tokenUsage) && (
+            <Card className="text-left mt-4">
+              <h4 className="border-b-2 border-bg pb-2 text-text-main font-heading">
+                Session Statistics
+              </h4>
+              <div className="grid grid-cols-2 gap-3 mt-3 text-sm">
+                {result.elapsedSeconds != null && result.elapsedSeconds > 0 && (
+                  <div className="flex items-center gap-2 text-text-sub">
+                    <Clock size={16} className="opacity-50 flex-shrink-0" />
+                    <span>
+                      <span className="font-bold text-text-main">
+                        {Math.floor(result.elapsedSeconds / 60)}:
+                        {String(Math.floor(result.elapsedSeconds % 60)).padStart(2, '0')}
+                      </span>{' '}
+                      elapsed
+                    </span>
+                  </div>
+                )}
+                {result.messageCount != null && result.messageCount > 0 && (
+                  <div className="flex items-center gap-2 text-text-sub">
+                    <MessageSquare size={16} className="opacity-50 flex-shrink-0" />
+                    <span>
+                      <span className="font-bold text-text-main">
+                        {result.messageCount.toLocaleString()}
+                      </span>{' '}
+                      messages
+                    </span>
+                  </div>
+                )}
+                {result.audioChunksSent != null && result.audioChunksSent > 0 && (
+                  <div className="flex items-center gap-2 text-text-sub">
+                    <Mic size={16} className="opacity-50 flex-shrink-0" />
+                    <span>
+                      <span className="font-bold text-text-main">
+                        {result.audioChunksSent.toLocaleString()}
+                      </span>{' '}
+                      audio chunks
+                    </span>
+                  </div>
+                )}
+                {result.tokenUsage && (
+                  <div className="flex items-center gap-2 text-text-sub">
+                    <Coins size={16} className="opacity-50 flex-shrink-0" />
+                    <span>
+                      <span className="font-bold text-text-main">
+                        {result.tokenUsage.totalTokenCount.toLocaleString()}
+                      </span>{' '}
+                      tokens
+                    </span>
+                  </div>
+                )}
+              </div>
+              {result.tokenUsage && (
+                <div className="mt-2 pt-2 border-t border-bg text-xs text-text-sub opacity-70">
+                  {result.tokenUsage.promptTokenCount.toLocaleString()} prompt,{' '}
+                  {result.tokenUsage.candidatesTokenCount.toLocaleString()} response
+                </div>
+              )}
             </Card>
           )}
 

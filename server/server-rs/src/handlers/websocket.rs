@@ -224,17 +224,30 @@ async fn handle_socket_inner(
                                 break;
                             }
                         }
-                        Some(ClientEvent::Error(message)) => {
+                        Some(ClientEvent::Error { message, stats }) => {
                             // Send error as JSON message to client
                             let error_json = serde_json::json!({
                                 "error": {
                                     "message": message,
-                                    "code": "POLICY_VIOLATION"
+                                    "code": "SESSION_ERROR",
+                                    "stats": stats
                                 }
                             }).to_string();
                             tracing::info!("Sending error to client: {}", error_json);
                             let _ = ws_sender
                                 .send(axum::extract::ws::Message::Text(error_json.into()))
+                                .await;
+                        }
+                        Some(ClientEvent::SessionEnd { stats }) => {
+                            // Send session end with stats
+                            let end_json = serde_json::json!({
+                                "sessionEnd": {
+                                    "stats": stats
+                                }
+                            }).to_string();
+                            tracing::info!("Sending session end to client: {}", end_json);
+                            let _ = ws_sender
+                                .send(axum::extract::ws::Message::Text(end_json.into()))
                                 .await;
                         }
                         Some(ClientEvent::Close) | None => {
@@ -260,6 +273,17 @@ async fn handle_socket_inner(
     Ok(())
 }
 
+/// Session statistics for reporting to client
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct SessionStats {
+    pub message_count: u64,
+    pub audio_chunks_sent: u64,
+    pub elapsed_seconds: f64,
+    pub total_token_count: u32,
+    pub prompt_token_count: u32,
+    pub candidates_token_count: u32,
+}
+
 /// Events sent to the client.
 #[derive(Debug)]
 pub enum ClientEvent {
@@ -267,8 +291,10 @@ pub enum ClientEvent {
     Audio(Vec<u8>),
     /// JSON event (transcription, turn complete, etc.)
     Json(String),
-    /// Error event with message
-    Error(String),
+    /// Error event with message and optional stats
+    Error { message: String, stats: Option<SessionStats> },
+    /// Session ended normally with stats
+    SessionEnd { stats: SessionStats },
     /// Close connection
     Close,
 }

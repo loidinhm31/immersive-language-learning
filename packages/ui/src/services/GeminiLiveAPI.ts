@@ -10,6 +10,8 @@ import {
   type TranscriptionData,
   type ToolCallData,
   type UsageMetadata,
+  type SessionStats,
+  type ErrorData,
   type FunctionDefinitionSchema,
   type GeminiLiveConfig,
 } from '@immersive-lang/shared';
@@ -19,7 +21,14 @@ import { API_ENDPOINTS, DEFAULT_VOICE, DEFAULT_TEMPERATURE } from '@immersive-la
  * Parses response messages from the Gemini Live API
  */
 export class MultimodalLiveResponseMessage implements GeminiResponse {
-  data: string | ArrayBuffer | TranscriptionData | ToolCallData | UsageMetadata = '';
+  data:
+    | string
+    | ArrayBuffer
+    | TranscriptionData
+    | ToolCallData
+    | UsageMetadata
+    | SessionStats
+    | ErrorData = '';
   type: MultimodalLiveResponseTypeValue = '' as MultimodalLiveResponseTypeValue;
   endOfTurn: boolean = false;
 
@@ -34,9 +43,44 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
     try {
       if (rawData?.error) {
         const errorData = rawData.error as Record<string, unknown>;
+        const statsData = errorData.stats as Record<string, unknown> | undefined;
         console.log('❌ ERROR response', errorData);
         this.type = MultimodalLiveResponseType.ERROR;
-        this.data = (errorData.message as string) || 'Unknown error';
+        this.data = {
+          message: (errorData.message as string) || 'Unknown error',
+          stats: statsData
+            ? {
+                messageCount: (statsData.message_count as number) || 0,
+                audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
+                elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
+                totalTokenCount: (statsData.total_token_count as number) || 0,
+                promptTokenCount: (statsData.prompt_token_count as number) || 0,
+                candidatesTokenCount: (statsData.candidates_token_count as number) || 0,
+              }
+            : undefined,
+        };
+      } else if (rawData?.sessionEnd) {
+        const sessionData = rawData.sessionEnd as Record<string, unknown>;
+        const statsData = sessionData.stats as Record<string, unknown> | undefined;
+        console.log('🏁 SESSION END response', sessionData);
+        this.type = MultimodalLiveResponseType.SESSION_END;
+        this.data = statsData
+          ? {
+              messageCount: (statsData.message_count as number) || 0,
+              audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
+              elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
+              totalTokenCount: (statsData.total_token_count as number) || 0,
+              promptTokenCount: (statsData.prompt_token_count as number) || 0,
+              candidatesTokenCount: (statsData.candidates_token_count as number) || 0,
+            }
+          : {
+              messageCount: 0,
+              audioChunksSent: 0,
+              elapsedSeconds: 0,
+              totalTokenCount: 0,
+              promptTokenCount: 0,
+              candidatesTokenCount: 0,
+            };
       } else if (rawData?.setupComplete) {
         console.log('🏁 SETUP COMPLETE response', rawData);
         this.type = MultimodalLiveResponseType.SETUP_COMPLETE;
@@ -64,8 +108,20 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
         };
       } else if (rawData?.toolCall) {
         console.log('🎯 🛠️ TOOL CALL response', rawData?.toolCall);
+        const sessionStatsRaw = rawData?.sessionStats as Record<string, unknown> | undefined;
+        const toolCallData = rawData?.toolCall as ToolCallData;
+        if (sessionStatsRaw) {
+          toolCallData.sessionStats = {
+            messageCount: (sessionStatsRaw.messageCount as number) || 0,
+            audioChunksSent: (sessionStatsRaw.audioChunksSent as number) || 0,
+            elapsedSeconds: (sessionStatsRaw.elapsedSeconds as number) || 0,
+            totalTokenCount: (sessionStatsRaw.totalTokenCount as number) || 0,
+            promptTokenCount: (sessionStatsRaw.promptTokenCount as number) || 0,
+            candidatesTokenCount: (sessionStatsRaw.candidatesTokenCount as number) || 0,
+          };
+        }
         this.type = MultimodalLiveResponseType.TOOL_CALL;
-        this.data = rawData?.toolCall as ToolCallData;
+        this.data = toolCallData;
       } else if (rawData?.usageMetadata) {
         const usage = rawData.usageMetadata as Record<string, unknown>;
         console.log('📊 USAGE METADATA response', usage);
