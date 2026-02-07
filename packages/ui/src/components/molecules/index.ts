@@ -14,3 +14,4 @@ export {
 export { SessionTimer, type SessionTimerProps } from './SessionTimer';
 export { TextCycler, type TextCyclerProps } from './TextCycler';
 export { TokenUsage, type TokenUsageProps } from './TokenUsage';
+export { SessionCard, type SessionCardProps } from './SessionCard';

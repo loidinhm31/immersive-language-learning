@@ -4,8 +4,9 @@
  */
 
 import { useState } from 'react';
+import { History } from 'lucide-react';
 import type { AppMode, Mission, SessionDuration } from '@immersive-lang/shared';
-import { Card } from '../atoms';
+import { Button, Card } from '../atoms';
 import {
   LanguageSelector,
   MissionCard,
@@ -101,6 +102,7 @@ export interface MissionsPageProps {
   onVoiceChange: (voice: string) => void;
   onSessionDurationChange: (duration: SessionDuration) => void;
   onMissionSelect: (mission: Mission) => void;
+  onViewHistory?: () => void;
 }
 
 export function MissionsPage({
@@ -115,13 +117,14 @@ export function MissionsPage({
   onVoiceChange,
   onSessionDurationChange,
   onMissionSelect,
+  onViewHistory,
 }: MissionsPageProps) {
   const [missions] = useState<Mission[]>(MISSIONS_DATA);
 
   return (
-    <div className="max-w-[1000px] mx-auto px-6 py-8">
+    <div className="max-w-250 mx-auto px-6 py-8">
       {/* HUD Panel */}
-      <Card className="grid grid-cols-2 gap-8 p-6 max-w-[900px] mx-auto mb-16">
+      <Card className="grid grid-cols-2 gap-8 p-6 max-w-225 mx-auto mb-16">
         <LanguageSelector
           label="I speak"
           value={fromLanguage}
@@ -149,9 +152,22 @@ export function MissionsPage({
 
       {/* Section Title */}
       <div className="mb-4 text-center">
-        <h2 className="text-4xl tracking-tight mb-1 font-heading font-bold text-text-main">
-          Choose Your Quest
-        </h2>
+        <div className="flex items-center justify-center gap-4 mb-1">
+          <h2 className="text-4xl tracking-tight font-heading font-bold text-text-main">
+            Choose Your Quest
+          </h2>
+          {onViewHistory && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onViewHistory}
+              className="text-text-sub hover:text-accent-primary"
+            >
+              <History size={18} className="mr-1" />
+              History
+            </Button>
+          )}
+        </div>
         <p className="opacity-70 text-lg text-text-sub">
           Select a scenario to begin your immersive practice
         </p>
@@ -183,11 +199,11 @@ export function MissionsPage({
         </div>
 
         <div className="p-8 flex items-center justify-between gap-8 flex-wrap">
-          <div className="flex-[2] min-w-[300px]">
+          <div className="flex-2 min-w-75">
             <h3 className="font-mono text-accent-primary mb-2 text-xl flex items-center gap-2.5">
               <span className="opacity-50">&gt;</span> Deploy Your Own Version
             </h3>
-            <p className="opacity-70 text-base leading-relaxed max-w-[500px] text-text-sub">
+            <p className="opacity-70 text-base leading-relaxed max-w-125 text-text-sub">
               Launch your own personalized instance in just 1-click. Customize scenarios, add new
               languages, or rewrite the world.
             </p>
@@ -198,7 +214,7 @@ export function MissionsPage({
               href="https://deploy.cloud.run/?git_repo=https://github.com/ZackAkil/immersive-language-learning-with-live-api&utm_source=github&utm_medium=unpaidsoc&utm_campaign=FY-Q1-global-cloud-ai-starter-apps&utm_content=immergo-app&utm_term=-"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-3 py-4 px-8 rounded-xl text-[#1a73e8] bg-[rgba(26,115,232,0.05)] no-underline font-extrabold shadow-[0_4px_15px_rgba(26,115,232,0.1)] transition-all duration-200 text-lg whitespace-nowrap border-2 border-dashed border-[#1a73e8] hover:translate-y-[-3px] hover:shadow-[0_8px_25px_rgba(26,115,232,0.2)] hover:bg-[rgba(26,115,232,0.1)]"
+              className="flex items-center justify-center gap-3 py-4 px-8 rounded-xl text-[#1a73e8] bg-[rgba(26,115,232,0.05)] no-underline font-extrabold shadow-[0_4px_15px_rgba(26,115,232,0.1)] transition-all duration-200 text-lg whitespace-nowrap border-2 border-dashed border-[#1a73e8] hover:-translate-y-0.75 hover:shadow-[0_8px_25px_rgba(26,115,232,0.2)] hover:bg-[rgba(26,115,232,0.1)]"
             >
               <img
                 src="https://www.gstatic.com/images/branding/product/1x/google_cloud_48dp.png"

@@ -13,6 +13,10 @@ export { ServiceFactory } from './factory/ServiceFactory';
 export type { IAuthService, AuthTokens } from './factory/interfaces/IAuthService';
 export type { ISyncService, SyncOptions, SyncResult } from './factory/interfaces/ISyncService';
 export type { IStorageService } from './factory/interfaces/IStorageService';
+export type {
+  ISessionHistoryService,
+  SessionHistoryFilter,
+} from './factory/interfaces/ISessionHistoryService';
 
 // Platform detection
 export { isTauri, getPlatform, type Platform } from './shared/platform';

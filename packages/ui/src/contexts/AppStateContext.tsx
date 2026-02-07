@@ -3,7 +3,8 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type {
   AppView,
   AppMode,
@@ -72,21 +73,61 @@ function getInitialState(): AppState {
   };
 }
 
+const VIEW_TO_PATH: Record<AppView, string> = {
+  splash: '/',
+  missions: '/missions',
+  chat: '/chat',
+  summary: '/summary',
+  history: '/history',
+};
+
+const PATH_TO_VIEW: Record<string, AppView> = {
+  '/': 'splash',
+  '/missions': 'missions',
+  '/chat': 'chat',
+  '/summary': 'summary',
+  '/history': 'history',
+};
+
 export function AppStateProvider({ children }: AppStateProviderProps) {
   const [state, setState] = useState<AppState>(getInitialState);
+  const navigateRouter = useNavigate();
+  const location = useLocation();
 
-  const navigate = useCallback((view: AppView, options?: NavigateOptions) => {
-    setState(prev => ({
-      ...prev,
-      view,
-      ...(options?.mission !== undefined && { selectedMission: options.mission }),
-      ...(options?.language && { selectedLanguage: options.language }),
-      ...(options?.fromLanguage && { selectedFromLanguage: options.fromLanguage }),
-      ...(options?.mode && { selectedMode: options.mode }),
-      ...(options?.sessionDuration && { sessionDuration: options.sessionDuration }),
-      ...(options?.result !== undefined && { sessionResult: options.result }),
-    }));
-  }, []);
+  // Sync URL to State (Handle back/forward, direct URL entry)
+  useEffect(() => {
+    // Determine view from path
+    // Simple matching for now. For /chat and /summary, we might need more complex logic if they have IDs in path
+    // But current router seems to be flat.
+    const path = location.pathname;
+    const view = PATH_TO_VIEW[path];
+
+    if (view && view !== state.view) {
+      setState(prev => ({ ...prev, view }));
+    }
+  }, [location.pathname, state.view]);
+
+  const navigate = useCallback(
+    (view: AppView, options?: NavigateOptions) => {
+      setState(prev => ({
+        ...prev,
+        view,
+        ...(options?.mission !== undefined && { selectedMission: options.mission }),
+        ...(options?.language && { selectedLanguage: options.language }),
+        ...(options?.fromLanguage && { selectedFromLanguage: options.fromLanguage }),
+        ...(options?.mode && { selectedMode: options.mode }),
+        ...(options?.sessionDuration && { sessionDuration: options.sessionDuration }),
+        ...(options?.result !== undefined && { sessionResult: options.result }),
+      }));
+
+      // Sync State to URL
+      const targetPath = VIEW_TO_PATH[view];
+      if (targetPath && location.pathname !== targetPath) {
+        navigateRouter(targetPath);
+      }
+    },
+    [location.pathname, navigateRouter]
+  );
 
   const setSelectedMission = useCallback((mission: Mission | null) => {
     setState(prev => ({ ...prev, selectedMission: mission }));

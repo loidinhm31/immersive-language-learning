@@ -3,7 +3,17 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-import { AlertCircle, Star, Github, Clock, MessageSquare, Mic, Coins } from 'lucide-react';
+import {
+  AlertCircle,
+  Star,
+  Github,
+  Clock,
+  MessageSquare,
+  Mic,
+  Coins,
+  PenLine,
+  Eye,
+} from 'lucide-react';
 import type { SessionResult } from '@immersive-lang/shared';
 import { SCORE_LEVELS } from '@immersive-lang/shared';
 import { Button } from '../atoms';
@@ -12,6 +22,7 @@ import { Card } from '../atoms';
 export interface SummaryPageProps {
   result: SessionResult;
   onBackToMissions: () => void;
+  onBackToHistory?: () => void;
 }
 
 function ScoreDisplay({ score }: { score: string }) {
@@ -81,7 +92,7 @@ function BuildYourOwnSection() {
   );
 }
 
-export function SummaryPage({ result, onBackToMissions }: SummaryPageProps) {
+export function SummaryPage({ result, onBackToMissions, onBackToHistory }: SummaryPageProps) {
   const isIncomplete = result.incomplete;
   const hasScore = !isIncomplete && result.score && result.score !== '0';
 
@@ -122,6 +133,46 @@ export function SummaryPage({ result, onBackToMissions }: SummaryPageProps) {
                 {result.notes.map((note, i) => (
                   <li key={i} className="mb-2">
                     {note}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {result.grammarCorrections && result.grammarCorrections.length > 0 && (
+            <Card className="text-left mt-4">
+              <h4 className="border-b-2 border-bg pb-2 text-text-main font-heading flex items-center gap-2">
+                <PenLine size={18} className="text-accent-primary" />
+                Grammar Corrections
+              </h4>
+              <div className="mt-3 space-y-4">
+                {result.grammarCorrections.map((gc, i) => (
+                  <div key={i} className="rounded-xl bg-bg p-3">
+                    <p className="text-sm text-text-sub mb-1">
+                      <span className="line-through text-destructive/80">{gc.user_said}</span>
+                    </p>
+                    <p className="text-xs text-text-sub opacity-70 mb-1">{gc.issue}</p>
+                    <p className="text-sm font-bold text-green-600">{gc.correction}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-text-sub opacity-60">
+                {result.grammarCorrections.length} correction
+                {result.grammarCorrections.length !== 1 ? 's' : ''} noted
+              </p>
+            </Card>
+          )}
+
+          {result.proficiencyObservations && result.proficiencyObservations.length > 0 && (
+            <Card className="text-left mt-4">
+              <h4 className="border-b-2 border-bg pb-2 text-text-main font-heading flex items-center gap-2">
+                <Eye size={18} className="text-accent-primary" />
+                Proficiency Observations
+              </h4>
+              <ul className="pl-6 mt-2 text-text-sub">
+                {result.proficiencyObservations.map((obs, i) => (
+                  <li key={i} className="mb-2">
+                    {obs}
                   </li>
                 ))}
               </ul>
@@ -194,14 +245,25 @@ export function SummaryPage({ result, onBackToMissions }: SummaryPageProps) {
         </>
       )}
 
-      <Button
-        variant="primary"
-        size="lg"
-        onClick={onBackToMissions}
-        className="w-full mb-16 uppercase tracking-wide"
-      >
-        Back to mission list
-      </Button>
+      {onBackToHistory ? (
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={onBackToHistory}
+          className="w-full mb-16 uppercase tracking-wide"
+        >
+          Back to History
+        </Button>
+      ) : (
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={onBackToMissions}
+          className="w-full mb-16 uppercase tracking-wide"
+        >
+          Back to mission list
+        </Button>
+      )}
     </div>
   );
 }

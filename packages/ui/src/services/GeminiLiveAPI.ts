@@ -15,7 +15,7 @@ import {
   type FunctionDefinitionSchema,
   type GeminiLiveConfig,
 } from '@immersive-lang/shared';
-import { API_ENDPOINTS, DEFAULT_VOICE, DEFAULT_TEMPERATURE } from '@immersive-lang/shared';
+import { API_ENDPOINTS, DEFAULT_VOICE, DEFAULT_TEMPERATURE, env } from '@immersive-lang/shared';
 
 /**
  * Parses response messages from the Gemini Live API
@@ -295,7 +295,12 @@ export class GeminiLiveAPI {
   async connect(token: string | null, sessionDuration?: number): Promise<void> {
     try {
       // 1. Authenticate
-      const response = await fetch(API_ENDPOINTS.AUTH, {
+      const baseUrl = env.apiBaseUrl;
+      const authUrl = `${baseUrl}${API_ENDPOINTS.AUTH}`;
+
+      console.log('🔗 Connecting to:', authUrl);
+
+      const response = await fetch(authUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -314,8 +319,10 @@ export class GeminiLiveAPI {
       const sessionToken = data.session_token;
 
       // 2. Connect WebSocket
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}${API_ENDPOINTS.WEBSOCKET}?token=${sessionToken}`;
+      // Convert http(s) to ws(s)
+      const wsProtocol = baseUrl.startsWith('https') ? 'wss:' : 'ws:';
+      const wsHost = baseUrl.replace(/^https?:\/\//, '');
+      const wsUrl = `${wsProtocol}//${wsHost}${API_ENDPOINTS.WEBSOCKET}?token=${sessionToken}`;
 
       this.setupWebSocketToService(wsUrl);
     } catch (error) {

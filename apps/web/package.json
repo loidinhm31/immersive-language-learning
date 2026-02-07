@@ -15,7 +15,8 @@
     "@immersive-lang/shared": "workspace:*",
     "@immersive-lang/ui": "workspace:*",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.9.6"
   },
   "devDependencies": {
     "@immersive-lang/eslint-config": "workspace:*",

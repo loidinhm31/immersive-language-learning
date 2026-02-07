@@ -18,8 +18,14 @@ export class AudioStreamer {
   private sampleRate: number = AUDIO_SAMPLE_RATES.INPUT;
   source: MediaStreamAudioSourceNode | null = null;
 
-  constructor(geminiClient: GeminiLiveAPI) {
+  workletUrl: string;
+
+  constructor(
+    geminiClient: GeminiLiveAPI,
+    workletUrl: string = '/audio-processors/capture.worklet.js'
+  ) {
     this.client = geminiClient;
+    this.workletUrl = workletUrl;
   }
 
   /**
@@ -51,7 +57,16 @@ export class AudioStreamer {
       });
 
       // Load the audio worklet module
-      await this.audioContext.audioWorklet.addModule('/audio-processors/capture.worklet.js');
+      try {
+        await this.audioContext.audioWorklet.addModule(this.workletUrl);
+      } catch (e) {
+        // Fallback or detailed error logging
+        console.error(
+          `Failed to load audio worklet from ${this.workletUrl}. Treating as fatal.`,
+          e
+        );
+        throw e;
+      }
 
       // Create the audio worklet node
       this.audioWorklet = new AudioWorkletNode(this.audioContext, 'audio-capture-processor');

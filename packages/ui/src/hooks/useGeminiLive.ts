@@ -115,10 +115,19 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
         clientRef.current = client;
 
         // Initialize audio streamer and player
-        const streamer = new AudioStreamer(client);
+        // Resolve worklet URL relative to current origin to handle Tauri/Vite paths correctly
+        const workletUrl = new URL(
+          '/audio-processors/capture.worklet.js',
+          window.location.origin
+        ).toString();
+        const streamer = new AudioStreamer(client, workletUrl);
         audioStreamerRef.current = streamer;
 
-        const player = new AudioPlayer();
+        const playerWorkletUrl = new URL(
+          '/audio-processors/playback.worklet.js',
+          window.location.origin
+        ).toString();
+        const player = new AudioPlayer(playerWorkletUrl);
         audioPlayerRef.current = player;
 
         // Configure client
@@ -132,7 +141,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
         // Add mission complete tool
         const completeMissionTool = new FunctionCallDefinition(
           'complete_mission',
-          'Call this tool when the user has successfully completed the mission objective.',
+          'Call this tool when the user has successfully completed the mission objective. Include grammar corrections and proficiency observations.',
           {
             type: 'OBJECT',
             properties: {
@@ -144,6 +153,34 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                 type: 'ARRAY',
                 items: { type: 'STRING' },
                 description: 'List of 3 constructive feedback points',
+              },
+              grammar_corrections: {
+                type: 'ARRAY',
+                items: {
+                  type: 'OBJECT',
+                  properties: {
+                    user_said: {
+                      type: 'STRING',
+                      description: 'What the user actually said (the incorrect phrase)',
+                    },
+                    issue: {
+                      type: 'STRING',
+                      description: 'Brief explanation of the grammar or vocabulary issue',
+                    },
+                    correction: {
+                      type: 'STRING',
+                      description: 'The correct form of the phrase',
+                    },
+                  },
+                  required: ['user_said', 'issue', 'correction'],
+                },
+                description:
+                  'List of specific grammar or vocabulary errors the user made during the session',
+              },
+              proficiency_observations: {
+                type: 'ARRAY',
+                items: { type: 'STRING' },
+                description: 'List of 2-4 general observations about the user proficiency level',
               },
             },
           },

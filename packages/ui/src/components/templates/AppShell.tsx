@@ -3,13 +3,21 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-import { type ReactNode, useEffect, useState } from 'react';
-import { Github, Moon, Sun, Monitor } from 'lucide-react';
-import { useTheme, type Theme } from '../../contexts/ThemeContext';
+import { type ReactNode, Suspense, useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { Github, Monitor, Moon, Sun } from 'lucide-react';
+import { type Theme, useTheme } from '../../contexts';
 import { API_ENDPOINTS } from '@immersive-lang/shared';
+import { BottomNavigation, Sidebar } from '../organisms';
+import { useIsMobile } from '../../hooks';
+import { Spinner } from '../atoms';
 
 export interface AppShellProps {
-  children: ReactNode;
+  children?: ReactNode;
+  /** Show sidebar/bottom nav (default: true) */
+  showNavigation?: boolean;
+  /** Custom loading fallback for Suspense */
+  loadingFallback?: ReactNode;
 }
 
 const THEME_ICONS: Record<Theme, ReactNode> = {
@@ -24,9 +32,26 @@ const THEME_TITLES: Record<Theme, string> = {
   system: 'System Default',
 };
 
-export function AppShell({ children }: AppShellProps) {
+// Routes where navigation should be hidden (immersive experiences)
+const IMMERSIVE_ROUTES = ['/', '/chat', '/summary'];
+
+export function AppShell({ children, showNavigation = true, loadingFallback }: AppShellProps) {
   const { theme, cycleTheme } = useTheme();
   const [simpleModeWarning, setSimpleModeWarning] = useState<string[] | null>(null);
+  const isMobile = useIsMobile();
+  const location = useLocation();
+
+  // Check if current route is immersive (should hide nav)
+  const isImmersiveRoute = IMMERSIVE_ROUTES.some(
+    route => location.pathname === route || location.pathname.startsWith('/chat')
+  );
+  const shouldShowNav = showNavigation && !isImmersiveRoute;
+
+  const defaultLoadingFallback = (
+    <div className="flex h-full items-center justify-center">
+      <Spinner className="h-8 w-8" />
+    </div>
+  );
 
   useEffect(() => {
     async function checkConfigStatus() {
@@ -44,37 +69,62 @@ export function AppShell({ children }: AppShellProps) {
   }, []);
 
   return (
-    <div className="min-h-screen w-full relative">
-      {/* Header */}
-      <header className="flex justify-end items-center py-2 px-4 gap-4 w-full pointer-events-none">
-        <div className="pointer-events-auto flex items-center gap-2">
-          <a
-            href="https://github.com/ZackAkil/immersive-language-learning-with-live-api"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 py-3.5 px-7 border-2 border-dashed border-accent-primary rounded-xl text-text-main no-underline font-extrabold transition-all duration-200 bg-surface backdrop-blur-[10px] shadow-sm text-lg hover:translate-y-[-3px] hover:shadow-md hover:bg-bg"
+    <div className="min-h-screen w-full flex">
+      {/* Sidebar - desktop only, hidden on immersive routes */}
+      {shouldShowNav && !isMobile && (
+        <aside className="hidden md:block w-56 shrink-0 border-r border-glass-border">
+          <Sidebar header={<span className="font-heading text-lg text-text-main">Immergo</span>} />
+        </aside>
+      )}
+
+      {/* Main content area */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Header */}
+        <header className="flex justify-end items-center py-2 px-4 gap-4 w-full pointer-events-none">
+          <div className="pointer-events-auto flex items-center gap-2">
+            <a
+              href="https://github.com/ZackAkil/immersive-language-learning-with-live-api"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-3 py-3.5 px-7 border-2 border-dashed border-accent-primary rounded-xl text-text-main no-underline font-extrabold transition-all duration-200 bg-surface backdrop-blur-[10px] shadow-sm text-lg hover:translate-y-[-3px] hover:shadow-md hover:bg-bg"
+            >
+              <Github size={20} style={{ opacity: 0.8 }} />
+              Source
+            </a>
+          </div>
+
+          <button
+            onClick={cycleTheme}
+            aria-label="Toggle Theme"
+            title={THEME_TITLES[theme]}
+            className="pointer-events-auto bg-surface text-text-main border border-glass-border rounded-full w-10 h-10 flex items-center justify-center cursor-pointer shadow-sm text-lg transition-all duration-200 backdrop-blur-[10px] hover:bg-bg"
           >
-            <Github size={20} style={{ opacity: 0.8 }} />
-            Source
-          </a>
-        </div>
+            {THEME_ICONS[theme]}
+          </button>
+        </header>
 
-        <button
-          onClick={cycleTheme}
-          aria-label="Toggle Theme"
-          title={THEME_TITLES[theme]}
-          className="pointer-events-auto bg-surface text-text-main border border-glass-border rounded-full w-10 h-10 flex items-center justify-center cursor-pointer shadow-sm text-lg transition-all duration-200 backdrop-blur-[10px] hover:bg-bg"
+        {/* Main Content */}
+        <main
+          className={`flex-1 w-full h-full overflow-auto ${shouldShowNav && isMobile ? 'pb-16' : ''}`}
         >
-          {THEME_ICONS[theme]}
-        </button>
-      </header>
+          <Suspense fallback={loadingFallback || defaultLoadingFallback}>
+            {children || <Outlet />}
+          </Suspense>
+        </main>
 
-      {/* Main Content */}
-      <main className="w-full h-full">{children}</main>
+        {/* Bottom Navigation - mobile only, hidden on immersive routes */}
+        {shouldShowNav && isMobile && (
+          <div className="fixed bottom-0 left-0 right-0 md:hidden z-40">
+            <BottomNavigation />
+          </div>
+        )}
+      </div>
 
       {/* Simple Mode Warning */}
       {simpleModeWarning && (
-        <div className="fixed bottom-0 left-0 right-0 bg-[#fff3cd] text-[#856404] py-2 px-4 text-center text-sm z-50 border-t border-[#ffeeba] flex justify-center items-center gap-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <div
+          className={`fixed ${shouldShowNav && isMobile ? 'bottom-16' : 'bottom-0'} left-0 right-0 bg-[#fff3cd] text-[#856404] py-2 px-4 text-center text-sm z-50 border-t border-[#ffeeba] flex justify-center items-center gap-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]`}
+        >
           <span>
             ⚠️ <b>Simple Mode Check:</b> Production security features (
             {simpleModeWarning.join(' & ')}) are not configured.

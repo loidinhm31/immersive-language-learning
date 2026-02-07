@@ -11,3 +11,9 @@ export {
   type SessionDurationSelectorProps,
 } from './SessionDurationSelector';
 export { VoiceSelector, type VoiceSelectorProps } from './VoiceSelector';
+export { Sidebar, type SidebarProps, type NavItem } from './Sidebar';
+export {
+  BottomNavigation,
+  type BottomNavigationProps,
+  type BottomNavItem,
+} from './BottomNavigation';

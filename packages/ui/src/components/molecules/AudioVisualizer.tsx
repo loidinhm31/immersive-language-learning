@@ -1,9 +1,4 @@
-/**
- * Copyright 2026 Google LLC
- * Licensed under the Apache License, Version 2.0
- */
-
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { cn } from '@immersive-lang/shared';
 
 export interface AudioVisualizerProps {
@@ -11,27 +6,55 @@ export interface AudioVisualizerProps {
   sourceNode?: AudioNode | null;
   className?: string;
   color?: string;
+  role?: 'user' | 'ai';
+  label?: string;
+  glowOnActivity?: boolean;
+  mode?: 'classic' | 'modern';
 }
+
+const ROLE_COLORS = {
+  user: '#2dd4bf', // teal-400
+  ai: '#fbbf24', // amber-400
+};
+
+const ROLE_GRADIENTS = {
+  user: ['rgba(45, 212, 191, 0)', '#2dd4bf', 'rgba(45, 212, 191, 0)'],
+  ai: ['rgba(251, 191, 36, 0)', '#fbbf24', 'rgba(251, 191, 36, 0)'],
+};
+
+const VAD_THRESHOLD = 0.01; // Lower threshold slightly for better reactivity
+const GLOW_LERP_FACTOR = 0.1; // Smoother glow
 
 export function AudioVisualizer({
   audioContext,
   sourceNode,
   className,
-  color = '#5c6b48',
+  color,
+  role,
+  label,
+  glowOnActivity = true,
+  mode = 'modern',
 }: AudioVisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationIdRef = useRef<number | null>(null);
-  const pointsRef = useRef<number[]>([]);
   const isActiveRef = useRef(false);
+  const glowIntensityRef = useRef(0);
+  const timeRef = useRef(0);
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
 
   const resize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    // Use device pixel ratio for sharper rendering
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.scale(dpr, dpr);
   }, []);
 
   const drawIdle = useCallback(() => {
@@ -41,18 +64,24 @@ export function AudioVisualizer({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { width, height } = canvas;
+    // We need to clear based on the scaled dimensions
+    const width = canvas.width / (window.devicePixelRatio || 1);
+    const height = canvas.height / (window.devicePixelRatio || 1);
+
     ctx.clearRect(0, 0, width, height);
 
+    const lineColor = role ? ROLE_COLORS[role] : color || '#ffffff';
+
+    // Simple flat line for idle state
     ctx.beginPath();
     ctx.moveTo(0, height / 2);
     ctx.lineTo(width, height / 2);
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = lineColor;
     ctx.lineWidth = 2;
-    ctx.globalAlpha = 0.3;
+    ctx.globalAlpha = 0.2;
     ctx.stroke();
     ctx.globalAlpha = 1.0;
-  }, [color]);
+  }, [color, role]);
 
   const animate = useCallback(() => {
     if (!isActiveRef.current || !analyserRef.current) return;
@@ -65,64 +94,102 @@ export function AudioVisualizer({
 
     animationIdRef.current = requestAnimationFrame(animate);
 
+    const width = canvas.width / (window.devicePixelRatio || 1);
+    const height = canvas.height / (window.devicePixelRatio || 1);
+
     const analyser = analyserRef.current;
     const bufferLength = analyser.frequencyBinCount;
+    // We use a smaller array for RMS calculation to avoid iterating too much
     const dataArray = new Uint8Array(bufferLength);
     analyser.getByteTimeDomainData(dataArray);
 
-    const { width, height } = canvas;
+    // RMS Calculation
+    let rms = 0;
+    for (let i = 0; i < dataArray.length; i++) {
+      // Convert 0..255 to -1..1
+      const v = (dataArray[i] - 128) / 128.0;
+      rms += v * v;
+    }
+    rms = Math.sqrt(rms / dataArray.length);
+
+    // Activity Detection & Glow
+    const isActive = glowOnActivity && rms > VAD_THRESHOLD;
+    const targetGlow = isActive ? Math.min(rms * 5.0, 1.0) : 0; // Scale RMS for glow
+    glowIntensityRef.current += (targetGlow - glowIntensityRef.current) * GLOW_LERP_FACTOR;
+
+    // Update React state for label
+    // Use a slightly different threshold for the label so it doesn't flicker too much
+    if (glowIntensityRef.current > 0.05 && !isVoiceActive) setIsVoiceActive(true);
+    else if (glowIntensityRef.current < 0.02 && isVoiceActive) setIsVoiceActive(false);
+
+    // Clear Canvas
     ctx.clearRect(0, 0, width, height);
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = color;
-    ctx.beginPath();
 
-    // Configuration for "Guitar String" effect
-    const pointsCount = 20;
-    const lerpFactor = 0.3;
-    const amplitudeScale = 10.0;
+    // Setup base styles
+    const lineColor = role ? ROLE_COLORS[role] : color || '#ffffff';
+    const gradientColors = role ? ROLE_GRADIENTS[role] : ['transparent', lineColor, 'transparent'];
 
-    // Initialize points array if needed
-    if (pointsRef.current.length !== pointsCount) {
-      pointsRef.current = new Array(pointsCount).fill(0);
+    // Create Gradient
+    const gradient = ctx.createLinearGradient(0, 0, width, 0);
+    gradient.addColorStop(0, gradientColors[0]);
+    gradient.addColorStop(0.5, gradientColors[1]);
+    gradient.addColorStop(1, gradientColors[2]);
+
+    // Apply Glow
+    const glowAmount = glowIntensityRef.current;
+    if (glowAmount > 0.01) {
+      ctx.shadowBlur = 15 * glowAmount;
+      ctx.shadowColor = lineColor;
+    } else {
+      ctx.shadowBlur = 0;
     }
 
-    const sliceWidth = width / (pointsCount - 1);
-    const bufferStep = Math.floor(dataArray.length / pointsCount);
+    ctx.lineWidth = 2 + glowAmount * 2;
+    ctx.strokeStyle = gradient;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-    for (let i = 0; i < pointsCount; i++) {
-      const audioIndex = Math.min(i * bufferStep, dataArray.length - 1);
-      let val = dataArray[audioIndex] / 128.0 - 1.0;
+    timeRef.current += 0.05; // Animation speed
 
-      // Guitar string windowing
-      const normalization = i / (pointsCount - 1);
-      const window = Math.sin(normalization * Math.PI);
-      const targetY = val * (height * 0.4) * amplitudeScale * window;
+    // Multi-Wave Rendering
+    const drawWave = (amplitude: number, frequency: number, phase: number, opacity: number) => {
+      ctx.beginPath();
+      ctx.globalAlpha = opacity;
 
-      // LERP smoothing
-      pointsRef.current[i] += (targetY - pointsRef.current[i]) * lerpFactor;
-    }
+      // Base amplitude modulated by audio loudness (RMS) + a minimum "breathing" amount
+      // Increased breathing amplitude for better visibility
+      const currentAmp = height * 0.4 * (rms * 4.0 * amplitude) + height * 0.05 * amplitude;
 
-    // Draw the curve
-    for (let i = 0; i < pointsCount; i++) {
-      const x = i * sliceWidth;
-      const y = height / 2 + pointsRef.current[i];
+      for (let x = 0; x <= width; x += 5) {
+        // Normalized X (-1 to 1) for windowing
+        const nx = (x / width) * 2 - 1;
+        // Window function (Hanning-ish) to taper ends
+        const window = 1 - Math.pow(nx, 2);
 
-      if (i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        const prevX = (i - 1) * sliceWidth;
-        const prevY = height / 2 + pointsRef.current[i - 1];
-        const cx = (prevX + x) / 2;
-        const cy = (prevY + y) / 2;
-        ctx.quadraticCurveTo(prevX, prevY, cx, cy);
+        // Sine wave function
+        const y =
+          height / 2 +
+          Math.sin(x * frequency * 0.01 + timeRef.current + phase) * currentAmp * window;
+
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
-    }
+      ctx.stroke();
+    };
 
-    ctx.lineTo(width, height / 2);
-    ctx.stroke();
-  }, [color]);
+    // Draw 3 overlapping waves with slight variations
+    // Main wave
+    drawWave(1.0, 1.0, 0, 1.0);
+    // Secondary wave (slower, lower amplitude)
+    drawWave(0.8, 0.7, 2, 0.5);
+    // Tertiary wave (faster, different phase)
+    drawWave(0.5, 1.5, 4, 0.3);
 
-  // Connect audio source
+    ctx.globalAlpha = 1.0;
+    ctx.shadowBlur = 0;
+  }, [color, role, glowOnActivity, isVoiceActive]); // Added isVoiceActive dependency to avoid stale closure issues if refs weren't enough (though refs are fine here)
+
+  // Connect Audio
   useEffect(() => {
     if (!audioContext || !sourceNode) {
       isActiveRef.current = false;
@@ -135,10 +202,13 @@ export function AudioVisualizer({
     }
 
     try {
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 2048;
-      sourceNode.connect(analyser);
-      analyserRef.current = analyser;
+      // Re-use existing analyser if possible, or create new one
+      if (!analyserRef.current) {
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        sourceNode.connect(analyser);
+        analyserRef.current = analyser;
+      }
 
       isActiveRef.current = true;
       animate();
@@ -149,12 +219,8 @@ export function AudioVisualizer({
           cancelAnimationFrame(animationIdRef.current);
           animationIdRef.current = null;
         }
-        try {
-          sourceNode.disconnect(analyser);
-        } catch {
-          // Ignore disconnect errors
-        }
-        analyserRef.current = null;
+        // Don't disconnect here to avoid breaking the audio graph if the parent component re-renders
+        // Just stop animating.
         drawIdle();
       };
     } catch (err) {
@@ -162,33 +228,61 @@ export function AudioVisualizer({
     }
   }, [audioContext, sourceNode, animate, drawIdle]);
 
-  // Handle resize
+  // Handle Resize
   useEffect(() => {
     resize();
-
-    const resizeObserver = new ResizeObserver(resize);
+    const observer = new ResizeObserver(resize);
     if (canvasRef.current) {
-      resizeObserver.observe(canvasRef.current.parentElement || canvasRef.current);
+      observer.observe(canvasRef.current.parentElement || canvasRef.current);
     }
-
     window.addEventListener('resize', resize);
-
     return () => {
-      resizeObserver.disconnect();
+      observer.disconnect();
       window.removeEventListener('resize', resize);
     };
   }, [resize]);
 
-  // Initial draw
+  // Initial Draw
   useEffect(() => {
-    if (!isActiveRef.current) {
-      drawIdle();
-    }
+    if (!isActiveRef.current) drawIdle();
   }, [drawIdle]);
 
+  // Label Logic
+  const labelColor = role ? ROLE_COLORS[role] : color;
+  const statusText = role === 'user' ? 'Listening...' : role === 'ai' ? 'Speaking...' : '';
+
   return (
-    <div className={cn('w-full h-full', className)}>
-      <canvas ref={canvasRef} className="w-full h-full block" />
+    <div className={cn('w-full h-full flex flex-col', className)}>
+      {label && (
+        <div className="flex items-center justify-center gap-2 mb-2 min-h-6">
+          {' '}
+          {/* Added min-height to prevent jumping */}
+          <span
+            className="text-sm font-bold transition-opacity duration-300 uppercase tracking-wider"
+            style={{
+              color: labelColor,
+              opacity: isVoiceActive || isActiveRef.current ? 1.0 : 0.6,
+            }}
+          >
+            {label}
+          </span>
+          {statusText && (
+            <span
+              className="text-xs transition-opacity duration-300"
+              style={{
+                color: labelColor,
+                opacity: isVoiceActive ? 0.9 : 0,
+              }}
+            >
+              {statusText}
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className="flex-1 w-full relative">
+        <canvas ref={canvasRef} className="w-full h-full block" />
+      </div>
     </div>
   );
 }

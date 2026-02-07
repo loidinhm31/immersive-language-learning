@@ -37,8 +37,11 @@ function playSound(audio: HTMLAudioElement): void {
   if (playPromise !== undefined) {
     playPromise.catch(e => {
       // Only log non-abort errors (AbortError is expected during unmount/navigation)
-      if (e.name !== 'AbortError') {
+      // Also ignore NotSupportedError which happens when the audio file is missing
+      if (e.name !== 'AbortError' && e.name !== 'NotSupportedError') {
         console.error('Failed to play sound:', e);
+      } else if (e.name === 'NotSupportedError') {
+        console.warn('Audio file missing or unsupported (safe to ignore for decoration sounds)');
       }
     });
   }
@@ -98,6 +101,8 @@ When the user says something like "I have to go", "goodbye", "I need to leave", 
 2. THEN call the "complete_mission" tool with:
    - score: 0 (freestyle sessions are unscored)
    - feedback_pointers: Provide 3 encouraging observations about the conversation (topics covered, phrases used well, areas to explore next time) in ${fromLanguage}
+   - grammar_corrections: List any grammar or vocabulary errors the user made (what they said, the issue, and the correct form)
+   - proficiency_observations: Provide 2-4 observations about the user's overall language proficiency
 
 REMEMBER: This is casual practice, not a test. Keep it fun and conversational!
 `;
@@ -127,6 +132,8 @@ When the user has successfully achieved the mission objective:
 2. THEN call the "complete_mission" tool.
 3. Set 'score' to 0 (Zero) as this is a learning-focused practice session.
 4. Provide 3 specific takeaways (grammar tips or new words) in the feedback list in ${fromLanguage}.
+5. Include grammar_corrections listing each grammar or vocabulary error the user made (what they said, the issue, the correct form).
+6. Include proficiency_observations with 2-4 general observations about the user's language proficiency.
 `;
   }
 
@@ -157,6 +164,8 @@ When the user has successfully achieved the mission objective declared in the sc
 2. THEN call the "complete_mission" tool.
 3. Assign a score based on strict criteria: 1 for struggling/English reliance (Tiro), 2 for capable but imperfect (Proficiens), 3 for native-level fluency (Peritus).
 4. Provide 3 specific pointers or compliments in the feedback list (in the user's native language: ${fromLanguage}).
+5. Include grammar_corrections listing each grammar or vocabulary error the user made (what they said, the issue, the correct form).
+6. Include proficiency_observations with 2-4 general observations about the user's language proficiency.
 `;
 }
 
@@ -280,6 +289,8 @@ export function ChatPage({
       messageCount: pendingCompletion.sessionStats?.messageCount,
       audioChunksSent: pendingCompletion.sessionStats?.audioChunksSent,
       tokenUsage: pendingCompletion.tokenUsage,
+      grammarCorrections: pendingCompletion.grammar_corrections,
+      proficiencyObservations: pendingCompletion.proficiency_observations,
     });
   }, [pendingCompletion, disconnect, onComplete]);
 
@@ -339,7 +350,7 @@ export function ChatPage({
   const effectiveSessionDuration = isFreestyle ? SESSION_DURATIONS.UNLIMITED : sessionDuration;
 
   return (
-    <div className="relative min-h-screen flex flex-col max-w-[520px] mx-auto px-6 pb-8">
+    <div className="relative min-h-screen flex flex-col max-w-130 mx-auto px-6 pb-8">
       {/* Back Button */}
       <button
         onClick={handleBackClick}
@@ -364,14 +375,14 @@ export function ChatPage({
         </h2>
 
         {/* Language Pill */}
-        <div className="text-sm font-bold text-text-sub mb-4 inline-flex items-center gap-2 bg-black/[0.04] py-1 px-3 rounded-full border border-black/5">
+        <div className="text-sm font-bold text-text-sub mb-4 inline-flex items-center gap-2 bg-black/4 py-1 px-3 rounded-full border border-black/5">
           <span>{fromLanguage}</span>
           <span className="opacity-30 font-normal">➔</span>
           <span className="text-accent-primary">{language}</span>
         </div>
 
         {/* Mission Info */}
-        <div className="rounded-2xl py-4 px-6 inline-block mt-4 max-w-[800px]">
+        <div className="rounded-2xl py-4 px-6 inline-block mt-4 max-w-200">
           <p className="text-xl font-bold text-accent-secondary m-0">{mission.title}</p>
           <p className="text-base opacity-90 mt-1 text-text-main">{mission.desc}</p>
         </div>
@@ -396,8 +407,13 @@ export function ChatPage({
         }}
       >
         {/* Model Visualizer */}
-        <div className="w-full h-[120px] flex items-center justify-center flex-shrink-0">
-          <AudioVisualizer audioContext={playerAudioContext} sourceNode={playerGainNode} />
+        <div className="w-full h-30 flex items-center justify-center shrink-0">
+          <AudioVisualizer
+            audioContext={playerAudioContext}
+            sourceNode={playerGainNode}
+            role="ai"
+            label="AI"
+          />
         </div>
 
         {/* Transcript (Teacher Mode only) */}
@@ -406,26 +422,31 @@ export function ChatPage({
             ref={el => {
               transcriptRef.current = el as { transcriptRef?: LiveTranscriptRef } | null;
             }}
-            className="w-full h-[250px] my-2.5 relative"
+            className="w-full h-62.5 my-2.5 relative"
           >
             <LiveTranscript />
           </div>
         )}
 
         {/* User Visualizer */}
-        <div className="w-full h-[120px] flex items-center justify-center flex-shrink-0">
-          <AudioVisualizer audioContext={audioContext} sourceNode={audioSource} />
+        <div className="w-full h-30 flex items-center justify-center shrink-0">
+          <AudioVisualizer
+            audioContext={audioContext}
+            sourceNode={audioSource}
+            role="user"
+            label="You"
+          />
         </div>
       </div>
 
       {/* CTA Button */}
-      <div className="mb-16 flex flex-col gap-6 items-center">
+      <div className="mb-16 flex flex-col gap-6 items-center z-10 relative">
         <Button
           variant={isActive ? 'danger' : 'primary'}
           size="lg"
           onClick={handleStartStop}
           isLoading={isConnecting}
-          className="min-w-[280px] flex-col py-6"
+          className="min-w-70 flex-col py-6"
         >
           {isActive ? (
             <span className="flex items-center gap-3">
@@ -462,7 +483,7 @@ export function ChatPage({
       {/* Rate Limit Dialog */}
       {showRateLimitDialog && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
-          <div className="bg-white text-gray-900 p-8 rounded-2xl max-w-[500px] text-center shadow-lg">
+          <div className="bg-white text-gray-900 p-8 rounded-2xl max-w-125 text-center shadow-lg">
             <h3 className="mb-4 text-accent-primary font-heading">Oops, this is too popular!</h3>
             <p className="mb-6 leading-relaxed">
               The global quota has been reached. But you can skip the queue by deploying your own
@@ -473,7 +494,7 @@ export function ChatPage({
                 href="https://deploy.cloud.run/?git_repo=https://github.com/ZackAkil/immersive-language-learning-with-live-api&utm_source=github&utm_medium=unpaidsoc&utm_campaign=FY-Q1-global-cloud-ai-starter-apps&utm_content=immergo-app&utm_term=-"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 py-4 px-8 rounded-xl text-[#1a73e8] bg-[rgba(26,115,232,0.05)] no-underline font-extrabold shadow-[0_4px_15px_rgba(26,115,232,0.1)] transition-all duration-200 text-lg whitespace-nowrap border-2 border-dashed border-[#1a73e8] hover:translate-y-[-3px] hover:shadow-[0_8px_25px_rgba(26,115,232,0.2)] hover:bg-[rgba(26,115,232,0.1)]"
+                className="flex items-center justify-center gap-3 py-4 px-8 rounded-xl text-[#1a73e8] bg-[rgba(26,115,232,0.05)] no-underline font-extrabold shadow-[0_4px_15px_rgba(26,115,232,0.1)] transition-all duration-200 text-lg whitespace-nowrap border-2 border-dashed border-[#1a73e8] hover:-translate-y-0.75 hover:shadow-[0_8px_25px_rgba(26,115,232,0.2)] hover:bg-[rgba(26,115,232,0.1)]"
               >
                 <img
                   src="https://www.gstatic.com/images/branding/product/1x/google_cloud_48dp.png"
@@ -506,7 +527,7 @@ export function ChatPage({
       {/* Mission Completion Confirmation Dialog */}
       {pendingCompletion && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-4">
-          <div className="bg-white text-gray-900 p-8 rounded-2xl max-w-[500px] w-full text-center shadow-lg">
+          <div className="bg-white text-gray-900 p-8 rounded-2xl max-w-125 w-full text-center shadow-lg">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle size={40} className="text-green-600" />
             </div>

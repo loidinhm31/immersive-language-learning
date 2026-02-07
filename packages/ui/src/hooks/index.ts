@@ -9,3 +9,9 @@ export {
   type UseGeminiLiveReturn,
 } from './useGeminiLive';
 export { useAudioStream, type UseAudioStreamReturn } from './useAudioStream';
+export {
+  useSessionHistory,
+  type UseSessionHistoryReturn,
+  type SaveSessionParams,
+} from './useSessionHistory';
+export { useMediaQuery, useIsMobile, useIsTablet, useIsDesktop } from './useMediaQuery';

@@ -47,9 +47,11 @@ export const LANGUAGES: Language[] = [
   { code: 'sci', name: 'Science Jargon', flag: '🧑‍🔬' },
 ];
 
+import type { GrammarCorrection } from './gemini';
+
 export type AppMode = 'immergo_immersive' | 'immergo_teacher';
 
-export type AppView = 'splash' | 'missions' | 'chat' | 'summary';
+export type AppView = 'splash' | 'missions' | 'chat' | 'summary' | 'history';
 
 export interface SessionResult {
   incomplete?: boolean;
@@ -64,6 +66,8 @@ export interface SessionResult {
     candidatesTokenCount: number;
     totalTokenCount: number;
   };
+  grammarCorrections?: GrammarCorrection[];
+  proficiencyObservations?: string[];
 }
 
 export type SessionDuration = 180 | 300 | 600 | 1800;
@@ -77,4 +81,23 @@ export interface AppState {
   selectedVoice: string;
   sessionDuration: SessionDuration;
   sessionResult: SessionResult | null;
+}
+
+/**
+ * A completed session stored in history
+ */
+export interface SessionHistoryEntry {
+  id: string;
+  mission: Mission | null;
+  language: string;
+  fromLanguage: string;
+  mode: AppMode;
+  voice: string;
+  result: SessionResult;
+  completedAt: number; // Unix timestamp
+  // Sync fields for SQLite
+  sync_version?: number;
+  synced_at?: number | null;
+  deleted?: boolean;
+  deleted_at?: number | null;
 }

@@ -67,10 +67,16 @@ export interface GeminiResponse {
   endOfTurn: boolean;
 }
 
+export interface GrammarCorrection {
+  user_said: string;
+  issue: string;
+  correction: string;
+}
+
 export interface FunctionParameter {
   type: string;
   description?: string;
-  items?: { type: string };
+  items?: { type: string; properties?: Record<string, FunctionParameter>; required?: string[] };
   properties?: Record<string, FunctionParameter>;
 }
 
@@ -109,6 +115,8 @@ export interface GeminiLiveConfig {
 export interface CompleteMissionArgs {
   score: number;
   feedback_pointers: string[];
+  grammar_corrections?: GrammarCorrection[];
+  proficiency_observations?: string[];
   sessionStats?: SessionStats;
   tokenUsage?: UsageMetadata;
 }

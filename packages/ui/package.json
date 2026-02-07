@@ -24,9 +24,12 @@
   "dependencies": {
     "@immersive-lang/shared": "workspace:*",
     "@tailwindcss/vite": "^4.0.7",
+    "@tauri-apps/api": "^2.5.0",
     "class-variance-authority": "^0.7.1",
+    "dexie": "^4.0.11",
     "framer-motion": "^12.4.7",
     "lucide-react": "^0.474.0",
+    "react-router-dom": "^7.9.6",
     "tailwindcss": "^4.0.7"
   },
   "peerDependencies": {

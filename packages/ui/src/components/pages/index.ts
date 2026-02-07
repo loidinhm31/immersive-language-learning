@@ -7,3 +7,4 @@ export { SplashPage, type SplashPageProps } from './SplashPage';
 export { MissionsPage, type MissionsPageProps } from './MissionsPage';
 export { ChatPage, type ChatPageProps } from './ChatPage';
 export { SummaryPage, type SummaryPageProps } from './SummaryPage';
+export { HistoryPage, type HistoryPageProps } from './HistoryPage';

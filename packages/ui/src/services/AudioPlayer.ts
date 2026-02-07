@@ -16,6 +16,14 @@ export class AudioPlayer {
   private volume: number = 1.0;
   private sampleRate: number = AUDIO_SAMPLE_RATES.OUTPUT;
 
+  workletUrl: string = '/audio-processors/playback.worklet.js';
+
+  constructor(workletUrl?: string) {
+    if (workletUrl) {
+      this.workletUrl = workletUrl;
+    }
+  }
+
   /**
    * Initialize the audio player
    */
@@ -34,7 +42,7 @@ export class AudioPlayer {
           'AudioWorklet is not supported. Please use a secure context (HTTPS/localhost) or a modern browser.'
         );
       }
-      await this.audioContext.audioWorklet.addModule('/audio-processors/playback.worklet.js');
+      await this.audioContext.audioWorklet.addModule(this.workletUrl);
 
       // Create worklet node
       this.workletNode = new AudioWorkletNode(this.audioContext, 'pcm-processor');

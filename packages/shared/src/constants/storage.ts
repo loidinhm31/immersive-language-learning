@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   MODE: 'immergo_mode',
   SESSION_DURATION: 'immergo_session_duration',
   VOICE: 'immergo_voice',
+  SESSION_HISTORY: 'immergo_session_history',
 } as const;
 
 export const API_ENDPOINTS = {
