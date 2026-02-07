@@ -64,6 +64,7 @@ async fn main() -> anyhow::Result<()> {
         // API routes
         .route("/api/auth", post(handlers::auth::authenticate))
         .route("/api/health", get(handlers::health::health_check))
+        .route("/api/status", get(handlers::status::check_status))
         // WebSocket endpoint
         .route("/ws", get(handlers::websocket::ws_handler))
         // Middleware
