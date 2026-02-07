@@ -1,0 +1,47 @@
+[package]
+name = "immergo-app"
+version = "0.1.0"
+description = "Immergo - Immersive Language Learning Desktop Application"
+authors = ["Google LLC"]
+edition = "2021"
+
+[lib]
+name = "immergo_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Tauri core
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-store = "2"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Database
+rusqlite = { version = "0.37", features = ["bundled"] }
+
+# Async runtime
+tokio = { version = "1", features = ["sync", "rt-multi-thread"] }
+
+# UUID generation
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# Time utilities
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

@@ -51,7 +51,6 @@ This is an interactive language learning application powered by the **Google Gem
 
 # [![Immersive Language Learning Walkthrough](http://img.youtube.com/vi/cdATDhw66pk/0.jpg)](http://www.youtube.com/watch?v=cdATDhw66pk)
 
-
 ## Setup
 
 ### 1. Clone the repository
@@ -115,7 +114,7 @@ To serve the built frontend via the Python server:
 The fastest way to get the app running in production is using Google Cloud Run:
 
 1.  **Click the button below**:
- [![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?utm_source=github&utm_medium=unpaidsoc&utm_campaign=FY-Q1-global-cloud-ai-starter-apps&utm_content=immergo-app&utm_term=-)   
+    [![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?utm_source=github&utm_medium=unpaidsoc&utm_campaign=FY-Q1-global-cloud-ai-starter-apps&utm_content=immergo-app&utm_term=-)
 2.  **Follow the prompts** in the Google Cloud Shell to authorize and deploy.
 
 ### 🛠 Manual Deployment (via `deploy.sh`)
