@@ -5,26 +5,29 @@
 
 import { useCallback, useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { AppShell, useAppState, useSessionHistory, Spinner } from '@immersive-lang/ui';
-import type {
-  Mission,
-  AppMode,
-  SessionResult,
-  SessionDuration,
-  SessionHistoryEntry,
-} from '@immersive-lang/shared';
+import {
+  AppShell,
+  useAppState,
+  useSessionHistory,
+  Spinner,
+} from '@immersive-lang/ui';
+import type { Mission, AppMode, SessionResult, SessionDuration, SessionHistoryEntry } from '@immersive-lang/shared';
 
 // Lazy load page components
-const SplashPage = lazy(() => import('@immersive-lang/ui').then(m => ({ default: m.SplashPage })));
-const MissionsPage = lazy(() =>
-  import('@immersive-lang/ui').then(m => ({ default: m.MissionsPage }))
+const SplashPage = lazy(() =>
+  import('@immersive-lang/ui').then((m) => ({ default: m.SplashPage }))
 );
-const ChatPage = lazy(() => import('@immersive-lang/ui').then(m => ({ default: m.ChatPage })));
+const MissionsPage = lazy(() =>
+  import('@immersive-lang/ui').then((m) => ({ default: m.MissionsPage }))
+);
+const ChatPage = lazy(() =>
+  import('@immersive-lang/ui').then((m) => ({ default: m.ChatPage }))
+);
 const SummaryPage = lazy(() =>
-  import('@immersive-lang/ui').then(m => ({ default: m.SummaryPage }))
+  import('@immersive-lang/ui').then((m) => ({ default: m.SummaryPage }))
 );
 const HistoryPage = lazy(() =>
-  import('@immersive-lang/ui').then(m => ({ default: m.HistoryPage }))
+  import('@immersive-lang/ui').then((m) => ({ default: m.HistoryPage }))
 );
 
 function PageLoader() {
@@ -187,16 +190,7 @@ function SummaryPageWrapper() {
         console.error('Failed to save session to history:', err);
       });
     }
-  }, [
-    state.sessionResult,
-    state.selectedMission,
-    state.selectedLanguage,
-    state.selectedFromLanguage,
-    state.selectedMode,
-    state.selectedVoice,
-    saveSession,
-    fromHistory,
-  ]);
+  }, [state.sessionResult, state.selectedMission, state.selectedLanguage, state.selectedFromLanguage, state.selectedMode, state.selectedVoice, saveSession, fromHistory]);
 
   // Reset saved flag when leaving summary
   useEffect(() => {

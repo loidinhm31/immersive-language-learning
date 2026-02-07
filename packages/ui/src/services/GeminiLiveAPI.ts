@@ -50,13 +50,13 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
           message: (errorData.message as string) || 'Unknown error',
           stats: statsData
             ? {
-                messageCount: (statsData.message_count as number) || 0,
-                audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
-                elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
-                totalTokenCount: (statsData.total_token_count as number) || 0,
-                promptTokenCount: (statsData.prompt_token_count as number) || 0,
-                candidatesTokenCount: (statsData.candidates_token_count as number) || 0,
-              }
+              messageCount: (statsData.message_count as number) || 0,
+              audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
+              elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
+              totalTokenCount: (statsData.total_token_count as number) || 0,
+              promptTokenCount: (statsData.prompt_token_count as number) || 0,
+              candidatesTokenCount: (statsData.candidates_token_count as number) || 0,
+            }
             : undefined,
         };
       } else if (rawData?.sessionEnd) {
@@ -66,21 +66,21 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
         this.type = MultimodalLiveResponseType.SESSION_END;
         this.data = statsData
           ? {
-              messageCount: (statsData.message_count as number) || 0,
-              audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
-              elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
-              totalTokenCount: (statsData.total_token_count as number) || 0,
-              promptTokenCount: (statsData.prompt_token_count as number) || 0,
-              candidatesTokenCount: (statsData.candidates_token_count as number) || 0,
-            }
+            messageCount: (statsData.message_count as number) || 0,
+            audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
+            elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
+            totalTokenCount: (statsData.total_token_count as number) || 0,
+            promptTokenCount: (statsData.prompt_token_count as number) || 0,
+            candidatesTokenCount: (statsData.candidates_token_count as number) || 0,
+          }
           : {
-              messageCount: 0,
-              audioChunksSent: 0,
-              elapsedSeconds: 0,
-              totalTokenCount: 0,
-              promptTokenCount: 0,
-              candidatesTokenCount: 0,
-            };
+            messageCount: 0,
+            audioChunksSent: 0,
+            elapsedSeconds: 0,
+            totalTokenCount: 0,
+            promptTokenCount: 0,
+            candidatesTokenCount: 0,
+          };
       } else if (rawData?.setupComplete) {
         console.log('🏁 SETUP COMPLETE response', rawData);
         this.type = MultimodalLiveResponseType.SETUP_COMPLETE;
@@ -232,9 +232,9 @@ export class GeminiLiveAPI {
     console.error('❌ [GeminiLiveAPI] Error:', message);
     this.connected = false;
   };
-  onOpen: () => void = () => {};
-  onClose: (event?: CloseEvent) => void = () => {};
-  onError: (event?: Event) => void = () => {};
+  onOpen: () => void = () => { };
+  onClose: (event?: CloseEvent) => void = () => { };
+  onError: (event?: Event) => void = () => { };
 
   constructor() {
     console.log('Created Gemini Live API object');

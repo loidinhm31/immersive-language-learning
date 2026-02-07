@@ -95,26 +95,23 @@ export function SessionCard({ entry, onDelete, onView }: SessionCardProps) {
               {result.grammarCorrections && result.grammarCorrections.length > 0 && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">
                   <PenLine size={10} />
-                  {result.grammarCorrections.length} correction
-                  {result.grammarCorrections.length !== 1 ? 's' : ''}
+                  {result.grammarCorrections.length} correction{result.grammarCorrections.length !== 1 ? 's' : ''}
                 </span>
               )}
             </div>
           )}
-          {!hasScore &&
-            !isIncomplete &&
-            result.grammarCorrections &&
-            result.grammarCorrections.length > 0 && (
-              <div className="mt-2">
-                <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1 w-fit">
-                  <PenLine size={10} />
-                  {result.grammarCorrections.length} correction
-                  {result.grammarCorrections.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-            )}
+          {!hasScore && !isIncomplete && result.grammarCorrections && result.grammarCorrections.length > 0 && (
+            <div className="mt-2">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1 w-fit">
+                <PenLine size={10} />
+                {result.grammarCorrections.length} correction{result.grammarCorrections.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
           {isIncomplete && (
-            <div className="mt-2 text-xs text-text-sub opacity-70">Session incomplete</div>
+            <div className="mt-2 text-xs text-text-sub opacity-70">
+              Session incomplete
+            </div>
           )}
         </div>
 

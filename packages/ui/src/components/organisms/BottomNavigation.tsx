@@ -23,7 +23,10 @@ const defaultItems: BottomNavItem[] = [
   { label: 'History', href: '/history', icon: History },
 ];
 
-export function BottomNavigation({ items = defaultItems, className = '' }: BottomNavigationProps) {
+export function BottomNavigation({
+  items = defaultItems,
+  className = '',
+}: BottomNavigationProps) {
   const location = useLocation();
 
   return (
@@ -34,7 +37,7 @@ export function BottomNavigation({ items = defaultItems, className = '' }: Botto
         ${className}
       `}
     >
-      {items.map(item => {
+      {items.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.href;
 
@@ -44,7 +47,11 @@ export function BottomNavigation({ items = defaultItems, className = '' }: Botto
             to={item.href}
             className={`
               relative flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs transition-colors
-              ${isActive ? 'text-accent-primary' : 'text-text-sub hover:text-text-main'}
+              ${
+                isActive
+                  ? 'text-accent-primary'
+                  : 'text-text-sub hover:text-text-main'
+              }
             `}
           >
             <div className="relative">

@@ -107,27 +107,24 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     }
   }, [location.pathname, state.view]);
 
-  const navigate = useCallback(
-    (view: AppView, options?: NavigateOptions) => {
-      setState(prev => ({
-        ...prev,
-        view,
-        ...(options?.mission !== undefined && { selectedMission: options.mission }),
-        ...(options?.language && { selectedLanguage: options.language }),
-        ...(options?.fromLanguage && { selectedFromLanguage: options.fromLanguage }),
-        ...(options?.mode && { selectedMode: options.mode }),
-        ...(options?.sessionDuration && { sessionDuration: options.sessionDuration }),
-        ...(options?.result !== undefined && { sessionResult: options.result }),
-      }));
+  const navigate = useCallback((view: AppView, options?: NavigateOptions) => {
+    setState(prev => ({
+      ...prev,
+      view,
+      ...(options?.mission !== undefined && { selectedMission: options.mission }),
+      ...(options?.language && { selectedLanguage: options.language }),
+      ...(options?.fromLanguage && { selectedFromLanguage: options.fromLanguage }),
+      ...(options?.mode && { selectedMode: options.mode }),
+      ...(options?.sessionDuration && { sessionDuration: options.sessionDuration }),
+      ...(options?.result !== undefined && { sessionResult: options.result }),
+    }));
 
-      // Sync State to URL
-      const targetPath = VIEW_TO_PATH[view];
-      if (targetPath && location.pathname !== targetPath) {
-        navigateRouter(targetPath);
-      }
-    },
-    [location.pathname, navigateRouter]
-  );
+    // Sync State to URL
+    const targetPath = VIEW_TO_PATH[view];
+    if (targetPath && location.pathname !== targetPath) {
+      navigateRouter(targetPath);
+    }
+  }, [location.pathname, navigateRouter]);
 
   const setSelectedMission = useCallback((mission: Mission | null) => {
     setState(prev => ({ ...prev, selectedMission: mission }));
