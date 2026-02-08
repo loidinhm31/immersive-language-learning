@@ -37,6 +37,7 @@ export interface UseGeminiLiveReturn {
         sessionDuration?: number,
         voice?: string,
         jwtToken?: string,
+        customTools?: FunctionCallDefinition[],
     ) => Promise<void>;
     disconnect: () => void;
     audioContext: AudioContext | null;
@@ -95,6 +96,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
             sessionDuration?: number,
             voice?: string,
             jwtToken?: string,
+            customTools?: FunctionCallDefinition[],
         ) => {
             if (isConnecting || isConnected) return;
 
@@ -126,62 +128,66 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                     client.setVoice(voice);
                 }
 
-                // Add mission complete tool
-                const completeMissionTool = new FunctionCallDefinition(
-                    "complete_mission",
-                    "Call this tool when the user has successfully completed the mission objective. Include grammar corrections and proficiency observations.",
-                    {
-                        type: "OBJECT",
-                        properties: {
-                            score: {
-                                type: "INTEGER",
-                                description: "Rating from 1 to 3 based on performance",
-                            },
-                            feedback_pointers: {
-                                type: "ARRAY",
-                                items: { type: "STRING" },
-                                description: "List of 3 constructive feedback points",
-                            },
-                            grammar_corrections: {
-                                type: "ARRAY",
-                                items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        user_said: {
-                                            type: "STRING",
-                                            description: "What the user actually said (the incorrect phrase)",
-                                        },
-                                        issue: {
-                                            type: "STRING",
-                                            description: "Brief explanation of the grammar or vocabulary issue",
-                                        },
-                                        correction: {
-                                            type: "STRING",
-                                            description: "The correct form of the phrase",
-                                        },
-                                    },
-                                    required: ["user_said", "issue", "correction"],
+                // Register tools - use custom tools if provided, otherwise default complete_mission
+                if (customTools && customTools.length > 0) {
+                    customTools.forEach((tool) => client.addFunction(tool));
+                } else {
+                    const completeMissionTool = new FunctionCallDefinition(
+                        "complete_mission",
+                        "Call this tool when the user has successfully completed the mission objective. Include grammar corrections and proficiency observations.",
+                        {
+                            type: "OBJECT",
+                            properties: {
+                                score: {
+                                    type: "INTEGER",
+                                    description: "Rating from 1 to 3 based on performance",
                                 },
-                                description:
-                                    "List of specific grammar or vocabulary errors the user made during the session",
-                            },
-                            proficiency_observations: {
-                                type: "ARRAY",
-                                items: { type: "STRING" },
-                                description: "List of 2-4 general observations about the user proficiency level",
+                                feedback_pointers: {
+                                    type: "ARRAY",
+                                    items: { type: "STRING" },
+                                    description: "List of 3 constructive feedback points",
+                                },
+                                grammar_corrections: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            user_said: {
+                                                type: "STRING",
+                                                description: "What the user actually said (the incorrect phrase)",
+                                            },
+                                            issue: {
+                                                type: "STRING",
+                                                description: "Brief explanation of the grammar or vocabulary issue",
+                                            },
+                                            correction: {
+                                                type: "STRING",
+                                                description: "The correct form of the phrase",
+                                            },
+                                        },
+                                        required: ["user_said", "issue", "correction"],
+                                    },
+                                    description:
+                                        "List of specific grammar or vocabulary errors the user made during the session",
+                                },
+                                proficiency_observations: {
+                                    type: "ARRAY",
+                                    items: { type: "STRING" },
+                                    description: "List of 2-4 general observations about the user proficiency level",
+                                },
                             },
                         },
-                    },
-                    ["score", "feedback_pointers"],
-                );
+                        ["score", "feedback_pointers"],
+                    );
 
-                completeMissionTool.functionToCall = (args: Record<string, unknown>) => {
-                    if (onMissionComplete) {
-                        onMissionComplete(args as unknown as CompleteMissionArgs);
-                    }
-                };
+                    completeMissionTool.functionToCall = (args: Record<string, unknown>) => {
+                        if (onMissionComplete) {
+                            onMissionComplete(args as unknown as CompleteMissionArgs);
+                        }
+                    };
 
-                client.addFunction(completeMissionTool);
+                    client.addFunction(completeMissionTool);
+                }
 
                 // Set up response handler
                 client.onReceiveResponse = (response: GeminiResponse) => {

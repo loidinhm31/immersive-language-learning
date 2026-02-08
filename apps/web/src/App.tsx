@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, lazy, Suspense } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AppShell } from "@immersive-lang/ui/components/templates";
-import type { Mission, AppMode, SessionResult, SessionDuration, SessionHistoryEntry } from "@immersive-lang/shared";
+import type { Mission, AppMode, SessionResult, SessionDuration, SessionHistoryEntry, IeltsConfig, IeltsAssessmentResult } from "@immersive-lang/shared";
 import { useAppState } from "@immersive-lang/ui/contexts";
 import { Spinner } from "@immersive-lang/ui/components/atoms";
 import { useSessionHistory } from "@immersive-lang/ui/hooks";
@@ -14,6 +14,15 @@ const MissionsPage = lazy(() =>
 const ChatPage = lazy(() => import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.ChatPage })));
 const SummaryPage = lazy(() => import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.SummaryPage })));
 const HistoryPage = lazy(() => import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.HistoryPage })));
+const IeltsSetupPage = lazy(() =>
+    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsSetupPage })),
+);
+const IeltsChatPage = lazy(() =>
+    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsChatPage })),
+);
+const IeltsSummaryPage = lazy(() =>
+    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsSummaryPage })),
+);
 
 function PageLoader() {
     return (
@@ -93,6 +102,10 @@ function MissionsPageWrapper() {
         navigate("/history");
     }, [navigate]);
 
+    const handleIeltsAssessment = useCallback(() => {
+        navigate("/ielts-setup");
+    }, [navigate]);
+
     return (
         <MissionsPage
             fromLanguage={state.selectedFromLanguage}
@@ -107,6 +120,7 @@ function MissionsPageWrapper() {
             onSessionDurationChange={handleSessionDurationChange}
             onMissionSelect={handleMissionSelect}
             onViewHistory={handleViewHistory}
+            onIeltsAssessment={handleIeltsAssessment}
         />
     );
 }
@@ -242,6 +256,130 @@ function HistoryPageWrapper() {
     return <HistoryPage onBack={handleHistoryBack} onViewSession={handleViewSession} />;
 }
 
+function IeltsSetupPageWrapper() {
+    const navigate = useNavigate();
+    const { state, setSelectedVoice, setIeltsConfig } = useAppState();
+
+    const handleStart = useCallback(
+        (config: IeltsConfig) => {
+            setIeltsConfig(config);
+            navigate("/ielts-chat");
+        },
+        [navigate, setIeltsConfig],
+    );
+
+    const handleBack = useCallback(() => {
+        navigate("/missions");
+    }, [navigate]);
+
+    return (
+        <IeltsSetupPage
+            voice={state.selectedVoice}
+            onVoiceChange={setSelectedVoice}
+            onStart={handleStart}
+            onBack={handleBack}
+        />
+    );
+}
+
+function IeltsChatPageWrapper() {
+    const navigate = useNavigate();
+    const { state, setIeltsResult } = useAppState();
+
+    useEffect(() => {
+        if (!state.ieltsConfig) {
+            navigate("/ielts-setup");
+        }
+    }, [state.ieltsConfig, navigate]);
+
+    const handleBack = useCallback(() => {
+        navigate("/ielts-setup");
+    }, [navigate]);
+
+    const handleComplete = useCallback(
+        (result: IeltsAssessmentResult) => {
+            setIeltsResult(result);
+            navigate("/ielts-summary");
+        },
+        [navigate, setIeltsResult],
+    );
+
+    if (!state.ieltsConfig) return null;
+
+    return (
+        <IeltsChatPage
+            ieltsConfig={state.ieltsConfig}
+            fromLanguage={state.selectedFromLanguage}
+            voice={state.selectedVoice}
+            onBack={handleBack}
+            onComplete={handleComplete}
+        />
+    );
+}
+
+function IeltsSummaryPageWrapper() {
+    const navigate = useNavigate();
+    const { state, setIeltsConfig, setIeltsResult } = useAppState();
+    const { saveSession } = useSessionHistory();
+    const sessionSavedRef = useRef(false);
+
+    useEffect(() => {
+        if (state.ieltsResult && !sessionSavedRef.current) {
+            sessionSavedRef.current = true;
+            saveSession({
+                mission: {
+                    id: 100,
+                    title: "IELTS Speaking Part 1",
+                    difficulty: "Expert",
+                    desc: `Topic: ${state.ieltsConfig?.topic || "General"}`,
+                    target_role: "IELTS Examiner",
+                },
+                language: "🇬🇧 English",
+                fromLanguage: state.selectedFromLanguage,
+                mode: "immergo_immersive",
+                voice: state.selectedVoice,
+                result: {
+                    score: state.ieltsResult.bandScores.overallBand.toString(),
+                    level: `Band ${state.ieltsResult.bandScores.overallBand}`,
+                    notes: state.ieltsResult.overallComments,
+                    elapsedSeconds: state.ieltsResult.elapsedSeconds,
+                    messageCount: state.ieltsResult.messageCount,
+                    audioChunksSent: state.ieltsResult.audioChunksSent,
+                    tokenUsage: state.ieltsResult.tokenUsage,
+                    grammarCorrections: state.ieltsResult.grammarCorrections,
+                    proficiencyObservations: state.ieltsResult.criterionFeedback.map(
+                        (cf) => `${cf.criterion}: Band ${cf.band} - ${cf.comment}`,
+                    ),
+                },
+            }).catch((err) => {
+                console.error("Failed to save IELTS session to history:", err);
+            });
+        }
+    }, [state.ieltsResult, state.ieltsConfig, state.selectedFromLanguage, state.selectedVoice, saveSession]);
+
+    useEffect(() => {
+        if (!state.ieltsResult) {
+            navigate("/missions");
+        }
+    }, [state.ieltsResult, navigate]);
+
+    const handleBackToMissions = useCallback(() => {
+        setIeltsConfig(null);
+        setIeltsResult(null);
+        navigate("/missions");
+    }, [navigate, setIeltsConfig, setIeltsResult]);
+
+    if (!state.ieltsResult) return null;
+
+    return (
+        <IeltsSummaryPage
+            result={state.ieltsResult}
+            topic={state.ieltsConfig?.topic}
+            onBackToMissions={handleBackToMissions}
+        />
+    );
+}
+
 function App() {
     return (
         <Routes>
@@ -290,6 +428,30 @@ function App() {
                     element={
                         <Suspense fallback={<PageLoader />}>
                             <SummaryPageWrapper />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/ielts-setup"
+                    element={
+                        <Suspense fallback={<PageLoader />}>
+                            <IeltsSetupPageWrapper />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/ielts-chat"
+                    element={
+                        <Suspense fallback={<PageLoader />}>
+                            <IeltsChatPageWrapper />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/ielts-summary"
+                    element={
+                        <Suspense fallback={<PageLoader />}>
+                            <IeltsSummaryPageWrapper />
                         </Suspense>
                     }
                 />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { History } from "lucide-react";
+import { History, ChevronRight, BookOpen } from "lucide-react";
 import type { AppMode, Mission, SessionDuration } from "@immersive-lang/shared";
 import { Button, Card } from "@immersive-lang/ui/components/atoms";
 import {
@@ -98,6 +98,7 @@ export interface MissionsPageProps {
     onSessionDurationChange: (duration: SessionDuration) => void;
     onMissionSelect: (mission: Mission) => void;
     onViewHistory?: () => void;
+    onIeltsAssessment?: () => void;
 }
 
 export function MissionsPage({
@@ -113,6 +114,7 @@ export function MissionsPage({
     onSessionDurationChange,
     onMissionSelect,
     onViewHistory,
+    onIeltsAssessment,
 }: MissionsPageProps) {
     const [missions] = useState<Mission[]>(MISSIONS_DATA);
 
@@ -163,6 +165,37 @@ export function MissionsPage({
                 </div>
                 <p className="opacity-70 text-lg text-text-sub">Select a scenario to begin your immersive practice</p>
             </div>
+
+            {/* IELTS Assessment Card */}
+            {onIeltsAssessment && (
+                <div className="mb-8">
+                    <button
+                        onClick={onIeltsAssessment}
+                        className="w-full text-left cursor-pointer rounded-2xl border-2 border-dashed border-accent-secondary bg-accent-secondary/5 p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:border-accent-secondary/80"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-accent-secondary/10 flex items-center justify-center flex-shrink-0">
+                                <BookOpen size={24} className="text-accent-secondary" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="text-xl font-heading font-bold text-text-main">
+                                        IELTS Speaking Part 1
+                                    </h3>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-accent-secondary bg-accent-secondary/10 px-2 py-0.5 rounded-full">
+                                        Assessment
+                                    </span>
+                                </div>
+                                <p className="text-base opacity-70 text-text-sub">
+                                    Practice with an AI examiner and get band scores (Fluency, Lexical, Grammar,
+                                    Pronunciation)
+                                </p>
+                            </div>
+                            <ChevronRight size={24} className="text-accent-secondary opacity-50 flex-shrink-0" />
+                        </div>
+                    </button>
+                </div>
+            )}
 
             {/* Mission Grid */}
             <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 mb-8">

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import type { AppView, AppMode, Mission, SessionResult, AppState, SessionDuration } from "@immersive-lang/shared";
+import type { AppView, AppMode, Mission, SessionResult, AppState, SessionDuration, IeltsConfig, IeltsAssessmentResult } from "@immersive-lang/shared";
 import { STORAGE_KEYS, DEFAULT_SESSION_DURATION, DEFAULT_VOICE } from "@immersive-lang/shared";
 
 interface AppStateContextValue {
@@ -13,6 +13,8 @@ interface AppStateContextValue {
     setSelectedVoice: (voice: string) => void;
     setSessionDuration: (duration: SessionDuration) => void;
     setSessionResult: (result: SessionResult | null) => void;
+    setIeltsConfig: (config: IeltsConfig | null) => void;
+    setIeltsResult: (result: IeltsAssessmentResult | null) => void;
 }
 
 interface NavigateOptions {
@@ -41,6 +43,8 @@ function getInitialState(): AppState {
             selectedVoice: DEFAULT_VOICE,
             sessionDuration: DEFAULT_SESSION_DURATION,
             sessionResult: null,
+            ieltsConfig: null,
+            ieltsResult: null,
         };
     }
 
@@ -58,6 +62,8 @@ function getInitialState(): AppState {
         selectedVoice: localStorage.getItem(STORAGE_KEYS.VOICE) || DEFAULT_VOICE,
         sessionDuration,
         sessionResult: null,
+        ieltsConfig: null,
+        ieltsResult: null,
     };
 }
 
@@ -67,6 +73,9 @@ const VIEW_TO_PATH: Record<AppView, string> = {
     chat: "/chat",
     summary: "/summary",
     history: "/history",
+    "ielts-setup": "/ielts-setup",
+    "ielts-chat": "/ielts-chat",
+    "ielts-summary": "/ielts-summary",
 };
 
 const PATH_TO_VIEW: Record<string, AppView> = {
@@ -75,6 +84,9 @@ const PATH_TO_VIEW: Record<string, AppView> = {
     "/chat": "chat",
     "/summary": "summary",
     "/history": "history",
+    "/ielts-setup": "ielts-setup",
+    "/ielts-chat": "ielts-chat",
+    "/ielts-summary": "ielts-summary",
 };
 
 export function AppStateProvider({ children }: AppStateProviderProps) {
@@ -150,6 +162,14 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
         setState((prev) => ({ ...prev, sessionResult: result }));
     }, []);
 
+    const setIeltsConfig = useCallback((config: IeltsConfig | null) => {
+        setState((prev) => ({ ...prev, ieltsConfig: config }));
+    }, []);
+
+    const setIeltsResult = useCallback((result: IeltsAssessmentResult | null) => {
+        setState((prev) => ({ ...prev, ieltsResult: result }));
+    }, []);
+
     return (
         <AppStateContext.Provider
             value={{
@@ -162,6 +182,8 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
                 setSelectedVoice,
                 setSessionDuration,
                 setSessionResult,
+                setIeltsConfig,
+                setIeltsResult,
             }}
         >
             {children}

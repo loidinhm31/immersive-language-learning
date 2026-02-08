@@ -29,7 +29,7 @@ const THEME_TITLES: Record<Theme, string> = {
 };
 
 // Routes where navigation should be hidden (immersive experiences)
-const IMMERSIVE_ROUTES = ["/", "/chat", "/summary"];
+const IMMERSIVE_ROUTES = ["/", "/chat", "/summary", "/ielts-setup", "/ielts-chat", "/ielts-summary"];
 
 export function AppShell({ children, showNavigation = true, loadingFallback }: AppShellProps) {
     const { theme, cycleTheme } = useTheme();

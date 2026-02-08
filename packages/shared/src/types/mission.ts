@@ -43,10 +43,11 @@ export const LANGUAGES: Language[] = [
 ];
 
 import type { GrammarCorrection } from "./gemini";
+import type { IeltsConfig, IeltsAssessmentResult } from "./ielts";
 
 export type AppMode = "immergo_immersive" | "immergo_teacher";
 
-export type AppView = "splash" | "missions" | "chat" | "summary" | "history";
+export type AppView = "splash" | "missions" | "chat" | "summary" | "history" | "ielts-setup" | "ielts-chat" | "ielts-summary";
 
 export interface SessionResult {
     incomplete?: boolean;
@@ -76,6 +77,8 @@ export interface AppState {
     selectedVoice: string;
     sessionDuration: SessionDuration;
     sessionResult: SessionResult | null;
+    ieltsConfig: IeltsConfig | null;
+    ieltsResult: IeltsAssessmentResult | null;
 }
 
 /**

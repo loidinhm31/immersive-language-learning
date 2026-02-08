@@ -5,3 +5,6 @@ export { MissionsPage } from "./MissionsPage";
 export { ChatPage } from "./ChatPage";
 export { SummaryPage } from "./SummaryPage";
 export { HistoryPage } from "./HistoryPage";
+export { IeltsSetupPage } from "./IeltsSetupPage";
+export { IeltsChatPage } from "./IeltsChatPage";
+export { IeltsSummaryPage } from "./IeltsSummaryPage";
