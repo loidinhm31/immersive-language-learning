@@ -440,7 +440,7 @@ export function ChatPage({
       </div>
 
       {/* CTA Button */}
-      <div className="mb-16 flex flex-col gap-6 items-center">
+      <div className="mb-16 flex flex-col gap-6 items-center z-10 relative">
         <Button
           variant={isActive ? 'danger' : 'primary'}
           size="lg"

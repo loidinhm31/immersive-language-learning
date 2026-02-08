@@ -3,7 +3,17 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-import { AlertCircle, Star, Github, Clock, MessageSquare, Mic, Coins, PenLine, Eye } from 'lucide-react';
+import {
+  AlertCircle,
+  Star,
+  Github,
+  Clock,
+  MessageSquare,
+  Mic,
+  Coins,
+  PenLine,
+  Eye,
+} from 'lucide-react';
 import type { SessionResult } from '@immersive-lang/shared';
 import { SCORE_LEVELS } from '@immersive-lang/shared';
 import { Button } from '../atoms';
@@ -147,7 +157,8 @@ export function SummaryPage({ result, onBackToMissions, onBackToHistory }: Summa
                 ))}
               </div>
               <p className="mt-3 text-xs text-text-sub opacity-60">
-                {result.grammarCorrections.length} correction{result.grammarCorrections.length !== 1 ? 's' : ''} noted
+                {result.grammarCorrections.length} correction
+                {result.grammarCorrections.length !== 1 ? 's' : ''} noted
               </p>
             </Card>
           )}

@@ -39,7 +39,8 @@ export interface UseGeminiLiveReturn {
     inputTranscription: boolean,
     outputTranscription: boolean,
     sessionDuration?: number,
-    voice?: string
+    voice?: string,
+    jwtToken?: string
   ) => Promise<void>;
   disconnect: () => void;
   audioContext: AudioContext | null;
@@ -103,7 +104,8 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
       inputTranscription: boolean,
       outputTranscription: boolean,
       sessionDuration?: number,
-      voice?: string
+      voice?: string,
+      jwtToken?: string
     ) => {
       if (isConnecting || isConnected) return;
 
@@ -116,11 +118,17 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
 
         // Initialize audio streamer and player
         // Resolve worklet URL relative to current origin to handle Tauri/Vite paths correctly
-        const workletUrl = new URL('/audio-processors/capture.worklet.js', window.location.origin).toString();
+        const workletUrl = new URL(
+          '/audio-processors/capture.worklet.js',
+          window.location.origin
+        ).toString();
         const streamer = new AudioStreamer(client, workletUrl);
         audioStreamerRef.current = streamer;
 
-        const playerWorkletUrl = new URL('/audio-processors/playback.worklet.js', window.location.origin).toString();
+        const playerWorkletUrl = new URL(
+          '/audio-processors/playback.worklet.js',
+          window.location.origin
+        ).toString();
         const player = new AudioPlayer(playerWorkletUrl);
         audioPlayerRef.current = player;
 
@@ -168,7 +176,8 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                   },
                   required: ['user_said', 'issue', 'correction'],
                 },
-                description: 'List of specific grammar or vocabulary errors the user made during the session',
+                description:
+                  'List of specific grammar or vocabulary errors the user made during the session',
               },
               proficiency_observations: {
                 type: 'ARRAY',
@@ -287,8 +296,8 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
           setIsConnected(false);
         };
 
-        // Connect (no ReCAPTCHA token needed for dev mode)
-        await client.connect(null, sessionDuration);
+        // Connect via qm-center-server (JWT auth for session token)
+        await client.connect(null, sessionDuration, jwtToken);
 
         // Start audio streaming
         await streamer.start();

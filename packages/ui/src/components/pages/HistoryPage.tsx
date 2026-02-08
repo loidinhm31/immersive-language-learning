@@ -38,18 +38,15 @@ export function HistoryPage({ onBack, onViewSession }: HistoryPageProps) {
     loadSessions();
   }, [loadSessions]);
 
-  const handleDelete = useCallback(
-    async (id: string) => {
-      try {
-        const historyService = ServiceFactory.getSessionHistoryService();
-        await historyService.delete(id);
-        setSessions(prev => prev.filter(s => s.id !== id));
-      } catch (err) {
-        console.error('Failed to delete session:', err);
-      }
-    },
-    []
-  );
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const historyService = ServiceFactory.getSessionHistoryService();
+      await historyService.delete(id);
+      setSessions(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      console.error('Failed to delete session:', err);
+    }
+  }, []);
 
   const handleClearAll = useCallback(async () => {
     if (!confirm('Are you sure you want to clear all session history?')) {

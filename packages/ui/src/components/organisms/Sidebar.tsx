@@ -26,24 +26,17 @@ const defaultNavItems: NavItem[] = [
   { label: 'History', href: '/history', icon: History },
 ];
 
-export function Sidebar({
-  items = defaultNavItems,
-  header,
-  footer,
-  className = '',
-}: SidebarProps) {
+export function Sidebar({ items = defaultNavItems, header, footer, className = '' }: SidebarProps) {
   const location = useLocation();
 
   return (
     <div className={`flex h-full flex-col bg-surface/50 backdrop-blur-sm ${className}`}>
       {header && (
-        <div className="flex h-14 items-center border-b border-glass-border px-4">
-          {header}
-        </div>
+        <div className="flex h-14 items-center border-b border-glass-border px-4">{header}</div>
       )}
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        {items.map((item) => {
+        {items.map(item => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
 
@@ -72,9 +65,7 @@ export function Sidebar({
         })}
       </nav>
 
-      {footer && (
-        <div className="border-t border-glass-border p-4">{footer}</div>
-      )}
+      {footer && <div className="border-t border-glass-border p-4">{footer}</div>}
     </div>
   );
 }

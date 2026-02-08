@@ -8,6 +8,7 @@
  */
 export interface AppEnvironment {
   VITE_API_BASE_URL: string;
+  VITE_QM_API_BASE_URL: string;
   DEV: boolean;
   PROD: boolean;
   MODE: string;
@@ -17,10 +18,11 @@ export interface AppEnvironment {
  * Default values for environment variables
  */
 const ENV_DEFAULTS: Partial<AppEnvironment> = {
-  VITE_API_BASE_URL: "http://localhost:8000", // Default to local Vite dev server
+  VITE_API_BASE_URL: 'http://localhost:8000', // Default to standalone server
+  VITE_QM_API_BASE_URL: 'http://localhost:3000', // Default to qm-center-server
   DEV: false,
   PROD: true,
-  MODE: "production",
+  MODE: 'production',
 };
 
 /**
@@ -40,7 +42,7 @@ class EnvironmentManager {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const env = (import.meta as any).env;
-      if (env && typeof env === "object") {
+      if (env && typeof env === 'object') {
         this.cachedEnv = env;
         return env;
       }
@@ -70,7 +72,7 @@ class EnvironmentManager {
   get isDev(): boolean {
     const env = this.getViteEnv();
     if (env) {
-      return env.DEV === true || env.MODE === "development";
+      return env.DEV === true || env.MODE === 'development';
     }
     return false;
   }
@@ -81,7 +83,7 @@ class EnvironmentManager {
   get isProd(): boolean {
     const env = this.getViteEnv();
     if (env) {
-      return env.PROD === true || env.MODE === "production";
+      return env.PROD === true || env.MODE === 'production';
     }
     return true;
   }
@@ -90,7 +92,14 @@ class EnvironmentManager {
    * Get the API base URL
    */
   get apiBaseUrl(): string {
-    return this.get("VITE_API_BASE_URL");
+    return this.get('VITE_API_BASE_URL');
+  }
+
+  /**
+   * Get the qm-center-server API base URL
+   */
+  get qmApiBaseUrl(): string {
+    return this.get('VITE_QM_API_BASE_URL');
   }
 }
 
