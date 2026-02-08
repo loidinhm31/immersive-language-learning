@@ -198,6 +198,8 @@ pub struct ServerContent {
     pub turn_complete: Option<bool>,
     #[serde(default)]
     pub interrupted: Option<bool>,
+    #[serde(default)]
+    pub generation_complete: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]

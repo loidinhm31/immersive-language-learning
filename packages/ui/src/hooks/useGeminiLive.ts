@@ -213,6 +213,16 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                     } else if (response.type === MultimodalLiveResponseType.SESSION_END) {
                         const stats = response.data as SessionStats;
                         console.log("🏁 [Gemini] Session ended. Stats:", stats);
+                        // Stop audio streaming and playback
+                        audioStreamerRef.current?.stop();
+                        audioPlayerRef.current?.interrupt();
+                        // Clear timer
+                        if (timerIntervalRef.current) {
+                            clearInterval(timerIntervalRef.current);
+                            timerIntervalRef.current = null;
+                        }
+                        setIsConnected(false);
+                        setRemainingTime(null);
                         // Store session stats
                         setSessionStats(stats);
                         // Notify the session end callback
@@ -235,6 +245,10 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                                     args.tokenUsage = tokenUsageRef.current;
                                 }
                                 client.callFunction(fc.name, args);
+                                // Send tool response back to Gemini (required by Live API)
+                                if (fc.id) {
+                                    client.sendToolResponse(fc.name, fc.id, { result: "ok" });
+                                }
                             });
                         }
                     } else if (response.type === MultimodalLiveResponseType.INPUT_TRANSCRIPTION) {
@@ -272,15 +286,21 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                         clearInterval(timerIntervalRef.current);
                         timerIntervalRef.current = null;
                     }
-                    // Stop audio streaming
+                    // Stop audio streaming and fully destroy audio player
                     audioStreamerRef.current?.stop();
-                    audioPlayerRef.current?.interrupt();
+                    audioPlayerRef.current?.destroy();
                     setIsConnected(false);
                     setRemainingTime(null);
+                    setPlayerAudioContext(null);
+                    setPlayerGainNode(null);
                 };
 
                 client.onError = () => {
+                    audioStreamerRef.current?.stop();
+                    audioPlayerRef.current?.destroy();
                     setIsConnected(false);
+                    setPlayerAudioContext(null);
+                    setPlayerGainNode(null);
                 };
 
                 // Connect via qm-center-server (JWT auth for session token)
@@ -356,7 +376,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
             clientRef.current.disconnect();
         }
         if (audioPlayerRef.current) {
-            audioPlayerRef.current.interrupt();
+            audioPlayerRef.current.destroy();
         }
 
         setIsConnected(false);

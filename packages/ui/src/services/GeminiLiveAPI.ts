@@ -196,10 +196,10 @@ export class GeminiLiveAPI {
     enableFunctionCalls: boolean = false;
     automaticActivityDetection: GeminiLiveConfig["automaticActivityDetection"] = {
         disabled: false,
-        silence_duration_ms: 2000,
-        prefix_padding_ms: 500,
-        end_of_speech_sensitivity: "END_SENSITIVITY_UNSPECIFIED",
-        start_of_speech_sensitivity: "START_SENSITIVITY_UNSPECIFIED",
+        silence_duration_ms: 500,
+        prefix_padding_ms: 50,
+        end_of_speech_sensitivity: "low",
+        start_of_speech_sensitivity: "low",
     };
 
     // State
@@ -459,11 +459,16 @@ export class GeminiLiveAPI {
         this.sendMessage(textMessage);
     }
 
-    sendToolResponse(toolCallId: string, response: unknown): void {
+    sendToolResponse(functionName: string, toolCallId: string, response: unknown): void {
         const message = {
             tool_response: {
-                id: toolCallId,
-                response: response,
+                function_responses: [
+                    {
+                        name: functionName,
+                        id: toolCallId,
+                        response: response,
+                    },
+                ],
             },
         };
         console.log("🔧 Sending tool response:", message);

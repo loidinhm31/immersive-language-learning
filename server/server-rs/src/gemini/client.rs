@@ -277,7 +277,14 @@ impl GeminiLiveClient {
                         // Determine if this is likely a session limit vs early policy error
                         let is_likely_session_limit = msg_count > 100; // If we got >100 messages, features work
 
-                        if frame.reason.contains("Policy") || frame.reason.contains("not implemented") || frame.reason.contains("not supported") || frame.reason.contains("not enabled") {
+                        if frame.reason.contains("Internal error") {
+                            tracing::warn!(
+                                "Gemini internal error after {} messages - may be caused by tool response issues or transient API failure",
+                                msg_count
+                            );
+                            let error_message = "Session ended unexpectedly: Gemini encountered an internal error. Please try again.".to_string();
+                            let _ = event_tx.send(ClientEvent::Error { message: error_message, stats: Some(stats) }).await;
+                        } else if frame.reason.contains("Policy") || frame.reason.contains("not implemented") || frame.reason.contains("not supported") || frame.reason.contains("not enabled") {
                             if is_likely_session_limit {
                                 // Session ran for a while - this is likely a context/duration limit
                                 tracing::info!(
@@ -451,12 +458,13 @@ impl GeminiLiveClient {
 
         if let Some(server_content) = msg.server_content {
             tracing::debug!(
-                "ServerContent - model_turn: {:?}, input_transcription: {:?}, output_transcription: {:?}, turn_complete: {:?}, interrupted: {:?}",
+                "ServerContent - model_turn: {:?}, input_transcription: {:?}, output_transcription: {:?}, turn_complete: {:?}, interrupted: {:?}, generation_complete: {:?}",
                 server_content.model_turn.is_some(),
                 server_content.input_transcription.is_some(),
                 server_content.output_transcription.is_some(),
                 server_content.turn_complete,
-                server_content.interrupted
+                server_content.interrupted,
+                server_content.generation_complete
             );
 
             // Extract audio data and send as binary
