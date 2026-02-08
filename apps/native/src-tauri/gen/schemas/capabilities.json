@@ -1,9 +1,9 @@
 {
-  "default": {
-    "identifier": "default",
-    "description": "Default capabilities for the app",
-    "local": true,
-    "windows": ["main"],
-    "permissions": ["core:default", "opener:default", "store:default"]
-  }
+    "default": {
+        "identifier": "default",
+        "description": "Default capabilities for the app",
+        "local": true,
+        "windows": ["main"],
+        "permissions": ["core:default", "opener:default", "store:default"]
+    }
 }

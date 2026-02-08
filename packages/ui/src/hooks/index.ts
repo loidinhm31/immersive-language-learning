@@ -1,17 +1,7 @@
-/**
- * Copyright 2026 Google LLC
- * Licensed under the Apache License, Version 2.0
- */
-
-export {
-  useGeminiLive,
-  type UseGeminiLiveOptions,
-  type UseGeminiLiveReturn,
-} from './useGeminiLive';
-export { useAudioStream, type UseAudioStreamReturn } from './useAudioStream';
-export {
-  useSessionHistory,
-  type UseSessionHistoryReturn,
-  type SaveSessionParams,
-} from './useSessionHistory';
-export { useMediaQuery, useIsMobile, useIsTablet, useIsDesktop } from './useMediaQuery';
+export * from "./useGeminiLive";
+export * from "./useAudioStream";
+export * from "./useSessionHistory";
+export * from "./useMediaQuery";
+export { useAuth, type UseAuthReturn } from "./useAuth";
+export * from "./useSync";
+export * from "./useNav";

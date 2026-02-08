@@ -1,46 +1,63 @@
+import type { AuthResponse, AuthStatus, SyncConfig } from "@immersive-lang/shared";
+
 /**
- * Authentication Service Interface
- *
- * Single source of truth for token management.
- * All services that need auth should call getTokens().
+ * Auth service interface for user authentication
+ * Implemented by platform-specific adapters
  */
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: number;
-}
-
 export interface IAuthService {
-  /**
-   * Get current authentication tokens
-   * Returns null if not authenticated
-   */
-  getTokens(): Promise<AuthTokens | null>;
+    /**
+     * Configure sync settings (server URL, app ID, API key)
+     */
+    configureSync(config: SyncConfig): Promise<void>;
 
-  /**
-   * Save tokens (e.g., after login or token refresh)
-   */
-  saveTokens(tokens: AuthTokens): Promise<void>;
+    /**
+     * Register a new user
+     */
+    register(username: string, email: string, password: string): Promise<AuthResponse>;
 
-  /**
-   * Save tokens from external source (e.g., sync service refresh)
-   * This is used when another service refreshes tokens
-   */
-  saveTokensExternal(tokens: AuthTokens): Promise<void>;
+    /**
+     * Login with email and password
+     */
+    login(email: string, password: string): Promise<AuthResponse>;
 
-  /**
-   * Clear all tokens (logout)
-   */
-  clearTokens(): Promise<void>;
+    /**
+     * Logout the current user
+     */
+    logout(): Promise<void>;
 
-  /**
-   * Check if user is authenticated
-   */
-  isAuthenticated(): Promise<boolean>;
+    /**
+     * Refresh the access token
+     */
+    refreshToken(): Promise<void>;
 
-  /**
-   * Check if access token is expired
-   */
-  isTokenExpired(): Promise<boolean>;
+    /**
+     * Get current authentication status
+     */
+    getStatus(): Promise<AuthStatus>;
+
+    /**
+     * Check if user is authenticated
+     */
+    isAuthenticated(): Promise<boolean>;
+
+    /**
+     * Get the current access token (if available)
+     */
+    getAccessToken(): Promise<string | null>;
+
+    /**
+     * Get all tokens (for sync service integration)
+     * Allows sync adapter to get tokens from the auth service (single source of truth)
+     */
+    getTokens(): Promise<{
+        accessToken?: string;
+        refreshToken?: string;
+        userId?: string;
+    }>;
+
+    /**
+     * Save tokens from external source (e.g., when sync service refreshes tokens)
+     * Optional - only needed for http adapter where sync may refresh tokens
+     */
+    saveTokensExternal?(accessToken: string, refreshToken: string, userId: string): Promise<void>;
 }

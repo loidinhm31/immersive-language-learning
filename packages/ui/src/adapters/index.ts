@@ -7,16 +7,10 @@
  */
 
 // Factory
-export { ServiceFactory } from './factory/ServiceFactory';
+export * from "@immersive-lang/ui/adapters/factory";
 
 // Interfaces
-export type { IAuthService, AuthTokens } from './factory/interfaces/IAuthService';
-export type { ISyncService, SyncOptions, SyncResult } from './factory/interfaces/ISyncService';
-export type { IStorageService } from './factory/interfaces/IStorageService';
-export type {
-  ISessionHistoryService,
-  SessionHistoryFilter,
-} from './factory/interfaces/ISessionHistoryService';
+export * from "@immersive-lang/ui/adapters/factory/interfaces";
 
 // Platform detection
-export { isTauri, getPlatform, type Platform } from './shared/platform';
+export * from "@immersive-lang/ui/adapters/shared";

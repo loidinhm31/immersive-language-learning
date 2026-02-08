@@ -1,5 +1,6 @@
 mod db;
 mod session_history;
+mod sync;
 
 use std::sync::Mutex;
 use tauri::Manager;
@@ -36,6 +37,11 @@ pub fn run() {
             session_history::delete_session,
             session_history::clear_sessions,
             session_history::count_sessions,
+            // Sync commands
+            sync::SyncService::sync_now,
+            sync::SyncService::get_sync_status,
+            sync::SyncService::configure_sync,
+            sync::SyncService::reset_sync,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,7 +1,7 @@
 # Immersive Language Learning with Live API
 
-[![GitHub stars](https://img.shields.io/github/stars/ZackAkil/immersive-language-learning-with-live-api?style=social)](https://github.com/ZackAkil/immersive-language-learning-with-live-api/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/ZackAkil/immersive-language-learning-with-live-api?style=social)](https://github.com/ZackAkil/immersive-language-learning-with-live-api/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/loidinhm31/immersive-language-learning?style=social)](https://github.com/loidinhm31/immersive-language-learning/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/loidinhm31/immersive-language-learning?style=social)](https://github.com/loidinhm31/immersive-language-learning/network/members)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Gemini Live API](https://img.shields.io/badge/Google%20Gemini%20Live%20API-8E75B2?style=flat&logo=google&logoColor=white)](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/live-api)
 
@@ -27,8 +27,8 @@ This is an interactive language learning application powered by the **Google Gem
 
 - **Missions & Roleplay**: Chose from structured scenarios with specific objectives.
 - **Learning Modes**:
-  - **Teacher Mode**: Get helpful explanations and translations in your native language.
-  - **Immersive Mode**: Strict "No Free Rides" policy where you must speak the target language to proceed.
+    - **Teacher Mode**: Get helpful explanations and translations in your native language.
+    - **Immersive Mode**: Strict "No Free Rides" policy where you must speak the target language to proceed.
 - **Native Language Support**: Select your native language for tailored feedback and assistance.
 - **Proactive AI Persona**: The AI adopts a specific role (e.g., "Bus Driver", "Friendly Neighbor"). And will only speak when necessary.
 - **Real-time Multimodal Interaction**: Speak naturally with the AI, which responds with low-latency audio.
@@ -57,7 +57,7 @@ This is an interactive language learning application powered by the **Google Gem
 
 ```bash
 git clone <repository-url>
-cd immersive-language-learning-with-live-api
+cd immersive-language-learning
 ```
 
 ### 2. Quick Install
@@ -148,14 +148,14 @@ To track session start and page view events in BigQuery:
 To protect against bots:
 
 - `RECAPTCHA_SITE_KEY`: Your Google reCAPTCHA v3 site key.
-  - _Note: Ensure your Cloud Run URL is added to the allowed domains in the reCAPTCHA console._
+    - _Note: Ensure your Cloud Run URL is added to the allowed domains in the reCAPTCHA console._
 
 #### 3. Redis (Rate Limiting)
 
 For scalable rate limiting across multiple container instances:
 
 - `REDIS_URL`: The URL of your Redis instance (e.g., `redis://10.0.0.1:6379/0`).
-  - _Note: If using Memorystore for Redis, ensure your Cloud Run service is connected to the same VPC network._
+    - _Note: If using Memorystore for Redis, ensure your Cloud Run service is connected to the same VPC network._
 
 ---
 

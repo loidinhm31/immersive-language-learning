@@ -1,0 +1,17 @@
+{
+    "appId": "immersive-lang",
+    "schema": {
+        "session_history": {
+            "columns": [
+                { "name": "mission_json", "type": "string", "nullable": true },
+                { "name": "language", "type": "string", "nullable": false },
+                { "name": "from_language", "type": "string", "nullable": false },
+                { "name": "mode", "type": "string", "nullable": false },
+                { "name": "voice", "type": "string", "nullable": false },
+                { "name": "result_json", "type": "string", "nullable": false },
+                { "name": "completed_at", "type": "integer", "nullable": false }
+            ],
+            "primaryKey": "id"
+        }
+    }
+}

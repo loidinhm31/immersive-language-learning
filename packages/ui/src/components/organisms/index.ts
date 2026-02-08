@@ -1,19 +1,8 @@
-/**
- * Copyright 2026 Google LLC
- * Licensed under the Apache License, Version 2.0
- */
-
-export { MissionCard, type MissionCardProps } from './MissionCard';
-export { LanguageSelector, type LanguageSelectorProps } from './LanguageSelector';
-export { ModeSelector, type ModeSelectorProps } from './ModeSelector';
-export {
-  SessionDurationSelector,
-  type SessionDurationSelectorProps,
-} from './SessionDurationSelector';
-export { VoiceSelector, type VoiceSelectorProps } from './VoiceSelector';
-export { Sidebar, type SidebarProps, type NavItem } from './Sidebar';
-export {
-  BottomNavigation,
-  type BottomNavigationProps,
-  type BottomNavItem,
-} from './BottomNavigation';
+export { SyncSettings } from "./SyncSettings";
+export { BottomNavigation } from "./BottomNavigation";
+export { Sidebar } from "./Sidebar";
+export { LanguageSelector } from "./LanguageSelector";
+export { MissionCard } from "./MissionCard";
+export { ModeSelector } from "./ModeSelector";
+export { SessionDurationSelector } from "./SessionDurationSelector";
+export { VoiceSelector } from "./VoiceSelector";

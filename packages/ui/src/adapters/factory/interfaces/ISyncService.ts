@@ -1,69 +1,30 @@
+import type { SyncResult, SyncStatus, SyncConfig } from "@immersive-lang/shared";
+
 /**
- * Sync Service Interface
- *
- * Handles offline-first data synchronization between
- * local storage (SQLite/IndexedDB) and remote server.
+ * Sync service interface for data synchronization
+ * Implemented by platform-specific adapters:
+ * - TauriSyncAdapter: Uses Tauri invoke for desktop
+ * - IndexedDBSyncAdapter: Direct sync for web via IndexedDB
  */
-
-export interface SyncOptions {
-  /**
-   * Tables/collections to sync
-   */
-  tables?: string[];
-
-  /**
-   * Force full sync instead of incremental
-   */
-  fullSync?: boolean;
-
-  /**
-   * Callback to get current auth tokens
-   */
-  getTokens: () => Promise<{ accessToken: string; refreshToken: string } | null>;
-
-  /**
-   * Callback when tokens are refreshed during sync
-   */
-  onTokenRefresh?: (tokens: { accessToken: string; refreshToken: string }) => Promise<void>;
-}
-
-export interface SyncResult {
-  success: boolean;
-  pushed: number;
-  pulled: number;
-  errors: SyncError[];
-  lastSyncedAt: number;
-}
-
-export interface SyncError {
-  table: string;
-  recordId: string;
-  error: string;
-}
-
 export interface ISyncService {
-  /**
-   * Perform sync with server
-   */
-  sync(options: SyncOptions): Promise<SyncResult>;
+    /**
+     * Configure sync settings (server URL, app ID, API key)
+     */
+    configure(config: SyncConfig): Promise<void>;
 
-  /**
-   * Get pending changes count
-   */
-  getPendingCount(): Promise<number>;
+    /**
+     * Trigger a sync operation
+     * Pushes local changes and pulls remote changes
+     */
+    syncNow(): Promise<SyncResult>;
 
-  /**
-   * Get last sync timestamp
-   */
-  getLastSyncedAt(): Promise<number | null>;
+    /**
+     * Get current sync status
+     */
+    getStatus(): Promise<SyncStatus>;
 
-  /**
-   * Mark records as needing sync
-   */
-  markForSync(table: string, ids: string[]): Promise<void>;
-
-  /**
-   * Check if sync is in progress
-   */
-  isSyncing(): boolean;
+    /**
+     * Reset sync state (for debugging/troubleshooting)
+     */
+    resetSync(): Promise<void>;
 }

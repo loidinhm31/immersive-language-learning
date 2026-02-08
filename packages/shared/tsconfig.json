@@ -1,7 +1,12 @@
 {
-  "extends": "@immersive-lang/tsconfig/base.json",
-  "compilerOptions": {
-    "outDir": "./dist"
-  },
-  "include": ["src/**/*"]
+    "extends": "@immersive-lang/tsconfig/base.json",
+    "compilerOptions": {
+        "rootDir": "./src",
+        "outDir": "./dist",
+        "paths": {
+            "@immersive-lang/shared/*": ["./src/*"]
+        }
+    },
+    "include": ["src"],
+    "exclude": ["node_modules", "dist"]
 }

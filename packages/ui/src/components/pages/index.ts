@@ -1,10 +1,7 @@
-/**
- * Copyright 2026 Google LLC
- * Licensed under the Apache License, Version 2.0
- */
-
-export { SplashPage, type SplashPageProps } from './SplashPage';
-export { MissionsPage, type MissionsPageProps } from './MissionsPage';
-export { ChatPage, type ChatPageProps } from './ChatPage';
-export { SummaryPage, type SummaryPageProps } from './SummaryPage';
-export { HistoryPage, type HistoryPageProps } from './HistoryPage';
+export { LoginPage, type LoginPageProps } from "./LoginPage";
+export { SettingsPage, type SettingsPageProps } from "./SettingsPage";
+export { SplashPage } from "./SplashPage";
+export { MissionsPage } from "./MissionsPage";
+export { ChatPage } from "./ChatPage";
+export { SummaryPage } from "./SummaryPage";
+export { HistoryPage } from "./HistoryPage";
