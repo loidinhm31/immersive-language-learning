@@ -32,8 +32,7 @@ class SessionHistoryDatabase extends Dexie {
   constructor() {
     super('immergo_session_history');
     this.version(1).stores({
-      sessions:
-        'id, completed_at, language, from_language, mode, deleted, sync_version, synced_at',
+      sessions: 'id, completed_at, language, from_language, mode, deleted, sync_version, synced_at',
     });
   }
 }

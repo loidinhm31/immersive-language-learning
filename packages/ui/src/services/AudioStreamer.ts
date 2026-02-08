@@ -20,7 +20,10 @@ export class AudioStreamer {
 
   workletUrl: string;
 
-  constructor(geminiClient: GeminiLiveAPI, workletUrl: string = '/audio-processors/capture.worklet.js') {
+  constructor(
+    geminiClient: GeminiLiveAPI,
+    workletUrl: string = '/audio-processors/capture.worklet.js'
+  ) {
     this.client = geminiClient;
     this.workletUrl = workletUrl;
   }
@@ -58,7 +61,10 @@ export class AudioStreamer {
         await this.audioContext.audioWorklet.addModule(this.workletUrl);
       } catch (e) {
         // Fallback or detailed error logging
-        console.error(`Failed to load audio worklet from ${this.workletUrl}. Treating as fatal.`, e);
+        console.error(
+          `Failed to load audio worklet from ${this.workletUrl}. Treating as fatal.`,
+          e
+        );
         throw e;
       }
 

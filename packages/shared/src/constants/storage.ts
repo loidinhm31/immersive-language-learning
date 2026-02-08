@@ -14,9 +14,9 @@ export const STORAGE_KEYS = {
 } as const;
 
 export const API_ENDPOINTS = {
-  AUTH: '/api/auth',
-  STATUS: '/api/status',
-  WEBSOCKET: '/ws',
+  AUTH: '/api/v1/gemini-live/auth',
+  STATUS: '/api/v1/gemini-live/status',
+  WEBSOCKET: '/api/v1/gemini-live/ws',
 } as const;
 
 export const AUDIO_SAMPLE_RATES = {

@@ -49,7 +49,16 @@ function App() {
     if (state.view !== 'summary') {
       sessionSavedRef.current = false;
     }
-  }, [state.view, state.sessionResult, state.selectedMission, state.selectedLanguage, state.selectedFromLanguage, state.selectedMode, state.selectedVoice, saveSession]);
+  }, [
+    state.view,
+    state.sessionResult,
+    state.selectedMission,
+    state.selectedLanguage,
+    state.selectedFromLanguage,
+    state.selectedMode,
+    state.selectedVoice,
+    saveSession,
+  ]);
 
   const handleStart = useCallback(() => {
     navigate('missions');

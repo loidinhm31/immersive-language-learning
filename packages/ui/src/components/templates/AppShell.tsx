@@ -35,11 +35,7 @@ const THEME_TITLES: Record<Theme, string> = {
 // Routes where navigation should be hidden (immersive experiences)
 const IMMERSIVE_ROUTES = ['/', '/chat', '/summary'];
 
-export function AppShell({
-  children,
-  showNavigation = true,
-  loadingFallback,
-}: AppShellProps) {
+export function AppShell({ children, showNavigation = true, loadingFallback }: AppShellProps) {
   const { theme, cycleTheme } = useTheme();
   const [simpleModeWarning, setSimpleModeWarning] = useState<string[] | null>(null);
   const isMobile = useIsMobile();
@@ -47,7 +43,7 @@ export function AppShell({
 
   // Check if current route is immersive (should hide nav)
   const isImmersiveRoute = IMMERSIVE_ROUTES.some(
-    (route) => location.pathname === route || location.pathname.startsWith('/chat')
+    route => location.pathname === route || location.pathname.startsWith('/chat')
   );
   const shouldShowNav = showNavigation && !isImmersiveRoute;
 
@@ -77,11 +73,7 @@ export function AppShell({
       {/* Sidebar - desktop only, hidden on immersive routes */}
       {shouldShowNav && !isMobile && (
         <aside className="hidden md:block w-56 shrink-0 border-r border-glass-border">
-          <Sidebar
-            header={
-              <span className="font-heading text-lg text-text-main">Immergo</span>
-            }
-          />
+          <Sidebar header={<span className="font-heading text-lg text-text-main">Immergo</span>} />
         </aside>
       )}
 
@@ -112,7 +104,9 @@ export function AppShell({
         </header>
 
         {/* Main Content */}
-        <main className={`flex-1 w-full h-full overflow-auto ${shouldShowNav && isMobile ? 'pb-16' : ''}`}>
+        <main
+          className={`flex-1 w-full h-full overflow-auto ${shouldShowNav && isMobile ? 'pb-16' : ''}`}
+        >
           <Suspense fallback={loadingFallback || defaultLoadingFallback}>
             {children || <Outlet />}
           </Suspense>
@@ -128,7 +122,9 @@ export function AppShell({
 
       {/* Simple Mode Warning */}
       {simpleModeWarning && (
-        <div className={`fixed ${shouldShowNav && isMobile ? 'bottom-16' : 'bottom-0'} left-0 right-0 bg-[#fff3cd] text-[#856404] py-2 px-4 text-center text-sm z-50 border-t border-[#ffeeba] flex justify-center items-center gap-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]`}>
+        <div
+          className={`fixed ${shouldShowNav && isMobile ? 'bottom-16' : 'bottom-0'} left-0 right-0 bg-[#fff3cd] text-[#856404] py-2 px-4 text-center text-sm z-50 border-t border-[#ffeeba] flex justify-center items-center gap-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]`}
+        >
           <span>
             ⚠️ <b>Simple Mode Check:</b> Production security features (
             {simpleModeWarning.join(' & ')}) are not configured.
