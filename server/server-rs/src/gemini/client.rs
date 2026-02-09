@@ -204,7 +204,7 @@ impl GeminiLiveClient {
         // Track latest token usage from Gemini (values are cumulative per session)
         let mut last_total_tokens: u32 = 0;
         let mut last_prompt_tokens: u32 = 0;
-        let mut last_candidates_tokens: u32 = 0;
+        let mut last_response_tokens: u32 = 0;
 
         let mut msg_count = 0u64;
         while let Some(msg) = ws_receiver.next().await {
@@ -219,7 +219,7 @@ impl GeminiLiveClient {
                     let preview = truncate_string(&text, 200);
                     recent_messages.push_back(preview);
 
-                    if let Err(e) = Self::handle_gemini_message(&text, &event_tx, msg_count, &audio_chunk_count, &session_start, &mut last_total_tokens, &mut last_prompt_tokens, &mut last_candidates_tokens).await {
+                    if let Err(e) = Self::handle_gemini_message(&text, &event_tx, msg_count, &audio_chunk_count, &session_start, &mut last_total_tokens, &mut last_prompt_tokens, &mut last_response_tokens).await {
                         tracing::error!("Error handling Gemini message: {}", e);
                     }
                 }
@@ -236,7 +236,7 @@ impl GeminiLiveClient {
                             let preview = truncate_string(&text, 200);
                             recent_messages.push_back(preview);
 
-                            if let Err(e) = Self::handle_gemini_message(&text, &event_tx, msg_count, &audio_chunk_count, &session_start, &mut last_total_tokens, &mut last_prompt_tokens, &mut last_candidates_tokens).await {
+                            if let Err(e) = Self::handle_gemini_message(&text, &event_tx, msg_count, &audio_chunk_count, &session_start, &mut last_total_tokens, &mut last_prompt_tokens, &mut last_response_tokens).await {
                                 tracing::error!("Error handling Gemini message: {}", e);
                             }
                         }
@@ -260,7 +260,7 @@ impl GeminiLiveClient {
                         elapsed_seconds: elapsed,
                         total_token_count: last_total_tokens,
                         prompt_token_count: last_prompt_tokens,
-                        candidates_token_count: last_candidates_tokens,
+                        response_token_count: last_response_tokens,
                     };
 
                     if let Some(ref frame) = reason {
@@ -332,7 +332,7 @@ impl GeminiLiveClient {
                         elapsed_seconds: elapsed,
                         total_token_count: last_total_tokens,
                         prompt_token_count: last_prompt_tokens,
-                        candidates_token_count: last_candidates_tokens,
+                        response_token_count: last_response_tokens,
                     };
                     let _ = event_tx.send(ClientEvent::Error {
                         message: format!("Connection error: {}", e),
@@ -432,7 +432,7 @@ impl GeminiLiveClient {
         session_start: &Instant,
         last_total_tokens: &mut u32,
         last_prompt_tokens: &mut u32,
-        last_candidates_tokens: &mut u32,
+        last_response_tokens: &mut u32,
     ) -> anyhow::Result<()> {
         // Log raw message for debugging (truncate if too long)
         let preview = truncate_string(text, 500);
@@ -570,17 +570,17 @@ impl GeminiLiveClient {
         // Handle usage metadata
         if let Some(usage) = msg.usage_metadata {
             let prompt = usage.prompt_token_count.unwrap_or(0);
-            let candidates = usage.candidates_token_count.unwrap_or(0);
+            let response = usage.response_token_count.unwrap_or(0);
             let total = usage.total_token_count.unwrap_or(0);
 
             // Update latest token counts
             *last_total_tokens = total;
             *last_prompt_tokens = prompt;
-            *last_candidates_tokens = candidates;
+            *last_response_tokens = response;
 
             tracing::info!(
-                "Token usage - prompt: {}, candidates: {}, total: {}",
-                prompt, candidates, total
+                "Token usage - prompt: {}, response: {}, total: {}",
+                prompt, response, total
             );
 
             let event_msg = ClientEventMessage {
@@ -588,7 +588,7 @@ impl GeminiLiveClient {
                 tool_call: None,
                 usage_metadata: Some(ClientUsageMetadata {
                     prompt_token_count: prompt,
-                    candidates_token_count: candidates,
+                    response_token_count: response,
                     total_token_count: total,
                 }),
                 session_stats: None,

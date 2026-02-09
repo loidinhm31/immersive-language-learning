@@ -281,7 +281,7 @@ pub struct SessionStats {
     pub elapsed_seconds: f64,
     pub total_token_count: u32,
     pub prompt_token_count: u32,
-    pub candidates_token_count: u32,
+    pub response_token_count: u32,
 }
 
 /// Events sent to the client.

@@ -184,7 +184,7 @@ export function IeltsPart2ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
         setPhase("speaking");
         setIsActive(true);
         try {
-            const systemInstructions = buildIeltsPart2Prompt(cueCard, fromLanguage);
+            const systemInstructions = buildIeltsPart2Prompt(cueCard, fromLanguage, IELTS_PART2_SESSION_DURATION);
             await connect(
                 systemInstructions,
                 true,

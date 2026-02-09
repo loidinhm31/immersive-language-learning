@@ -59,7 +59,7 @@ export interface SessionResult {
     audioChunksSent?: number;
     tokenUsage?: {
         promptTokenCount: number;
-        candidatesTokenCount: number;
+        responseTokenCount: number;
         totalTokenCount: number;
     };
     grammarCorrections?: GrammarCorrection[];

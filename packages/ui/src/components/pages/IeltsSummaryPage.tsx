@@ -248,7 +248,7 @@ export function IeltsSummaryPage({ result, part = 1, topic, cueCard, onBackToMis
                             {result.tokenUsage && (
                                 <div className="mt-2 pt-2 border-t border-bg text-xs text-text-sub opacity-70">
                                     {result.tokenUsage.promptTokenCount.toLocaleString()} prompt,{" "}
-                                    {result.tokenUsage.candidatesTokenCount.toLocaleString()} response
+                                    {result.tokenUsage.responseTokenCount.toLocaleString()} response
                                 </div>
                             )}
                         </Card>

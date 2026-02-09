@@ -172,7 +172,7 @@ export function IeltsPart3ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
         } else {
             setIsActive(true);
             try {
-                const systemInstructions = buildIeltsPart3Prompt(ieltsConfig.topic, fromLanguage);
+                const systemInstructions = buildIeltsPart3Prompt(ieltsConfig.topic, fromLanguage, IELTS_PART3_SESSION_DURATION);
                 await connect(
                     systemInstructions,
                     true,

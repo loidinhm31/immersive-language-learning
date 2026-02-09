@@ -251,6 +251,8 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                                 }
                             });
                         }
+                    } else if (response.type === MultimodalLiveResponseType.GENERATION_COMPLETE) {
+                        console.log("[Gemini] Generation complete");
                     } else if (response.type === MultimodalLiveResponseType.INPUT_TRANSCRIPTION) {
                         const data = response.data as TranscriptionData;
                         onTranscriptInput?.(data.text, data.finished);
@@ -267,7 +269,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                             // Accumulate token counts across messages
                             const accumulated = {
                                 promptTokenCount: prev.promptTokenCount + usage.promptTokenCount,
-                                candidatesTokenCount: prev.candidatesTokenCount + usage.candidatesTokenCount,
+                                responseTokenCount: prev.responseTokenCount + usage.responseTokenCount,
                                 totalTokenCount: prev.totalTokenCount + usage.totalTokenCount,
                             };
                             tokenUsageRef.current = accumulated;

@@ -22,7 +22,7 @@ export function TokenUsage({ tokenUsage, className }: TokenUsageProps) {
             </span>
             <span className="text-cream/30">|</span>
             <span title="Output tokens">
-                Out: <span className="text-cream/80">{formatNumber(tokenUsage.candidatesTokenCount)}</span>
+                Out: <span className="text-cream/80">{formatNumber(tokenUsage.responseTokenCount)}</span>
             </span>
             <span className="text-cream/30">|</span>
             <span title="Total tokens">

@@ -10,6 +10,7 @@ export const MultimodalLiveResponseType = {
     INPUT_TRANSCRIPTION: "INPUT_TRANSCRIPTION",
     OUTPUT_TRANSCRIPTION: "OUTPUT_TRANSCRIPTION",
     USAGE_METADATA: "USAGE_METADATA",
+    GENERATION_COMPLETE: "GENERATION_COMPLETE",
 } as const;
 
 export type MultimodalLiveResponseTypeValue =
@@ -31,7 +32,7 @@ export interface ToolCallData {
 
 export interface UsageMetadata {
     promptTokenCount: number;
-    candidatesTokenCount: number;
+    responseTokenCount: number;
     totalTokenCount: number;
 }
 
@@ -41,7 +42,7 @@ export interface SessionStats {
     elapsedSeconds: number;
     totalTokenCount: number;
     promptTokenCount: number;
-    candidatesTokenCount: number;
+    responseTokenCount: number;
 }
 
 export interface ErrorData {

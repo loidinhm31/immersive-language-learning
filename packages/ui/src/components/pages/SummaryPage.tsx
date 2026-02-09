@@ -219,7 +219,7 @@ export function SummaryPage({ result, onBackToMissions, onBackToHistory }: Summa
                             {result.tokenUsage && (
                                 <div className="mt-2 pt-2 border-t border-bg text-xs text-text-sub opacity-70">
                                     {result.tokenUsage.promptTokenCount.toLocaleString()} prompt,{" "}
-                                    {result.tokenUsage.candidatesTokenCount.toLocaleString()} response
+                                    {result.tokenUsage.responseTokenCount.toLocaleString()} response
                                 </div>
                             )}
                         </Card>

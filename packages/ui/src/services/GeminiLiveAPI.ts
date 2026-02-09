@@ -20,82 +20,86 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
     type: MultimodalLiveResponseTypeValue = "" as MultimodalLiveResponseTypeValue;
     endOfTurn: boolean = false;
 
-    constructor(rawData: Record<string, unknown>) {
+    constructor(type: MultimodalLiveResponseTypeValue, data: GeminiResponse["data"] = "", endOfTurn: boolean = false) {
+        this.type = type;
+        this.data = data;
+        this.endOfTurn = endOfTurn;
+    }
+
+    /**
+     * Parse a raw message into one or more response messages.
+     * A single backend message can contain multiple fields (e.g. turnComplete + outputTranscription),
+     * so we emit a separate response for each to avoid silently dropping events.
+     */
+    static parseAll(rawData: Record<string, unknown>): MultimodalLiveResponseMessage[] {
         console.log("raw message data: ", rawData);
-        this.endOfTurn = !!(rawData?.serverContent as Record<string, unknown>)?.turnComplete;
+        const responses: MultimodalLiveResponseMessage[] = [];
+        const endOfTurn = !!(rawData?.serverContent as Record<string, unknown>)?.turnComplete;
 
         const serverContent = rawData?.serverContent as Record<string, unknown> | undefined;
         const modelTurn = serverContent?.modelTurn as Record<string, unknown> | undefined;
         const parts = modelTurn?.parts as Array<Record<string, unknown>> | undefined;
 
         try {
+            // Top-level exclusive types (error, sessionEnd, setupComplete, toolCall)
             if (rawData?.error) {
                 const errorData = rawData.error as Record<string, unknown>;
                 const statsData = errorData.stats as Record<string, unknown> | undefined;
-                console.log("❌ ERROR response", errorData);
-                this.type = MultimodalLiveResponseType.ERROR;
-                this.data = {
-                    message: (errorData.message as string) || "Unknown error",
-                    stats: statsData
+                console.log("ERROR response", errorData);
+                responses.push(new MultimodalLiveResponseMessage(
+                    MultimodalLiveResponseType.ERROR,
+                    {
+                        message: (errorData.message as string) || "Unknown error",
+                        stats: statsData
+                            ? {
+                                  messageCount: (statsData.message_count as number) || 0,
+                                  audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
+                                  elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
+                                  totalTokenCount: (statsData.total_token_count as number) || 0,
+                                  promptTokenCount: (statsData.prompt_token_count as number) || 0,
+                                  responseTokenCount: (statsData.response_token_count as number) || 0,
+                              }
+                            : undefined,
+                    },
+                ));
+                return responses;
+            }
+
+            if (rawData?.sessionEnd) {
+                const sessionData = rawData.sessionEnd as Record<string, unknown>;
+                const statsData = sessionData.stats as Record<string, unknown> | undefined;
+                console.log("SESSION END response", sessionData);
+                responses.push(new MultimodalLiveResponseMessage(
+                    MultimodalLiveResponseType.SESSION_END,
+                    statsData
                         ? {
                               messageCount: (statsData.message_count as number) || 0,
                               audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
                               elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
                               totalTokenCount: (statsData.total_token_count as number) || 0,
                               promptTokenCount: (statsData.prompt_token_count as number) || 0,
-                              candidatesTokenCount: (statsData.candidates_token_count as number) || 0,
+                              responseTokenCount: (statsData.response_token_count as number) || 0,
                           }
-                        : undefined,
-                };
-            } else if (rawData?.sessionEnd) {
-                const sessionData = rawData.sessionEnd as Record<string, unknown>;
-                const statsData = sessionData.stats as Record<string, unknown> | undefined;
-                console.log("🏁 SESSION END response", sessionData);
-                this.type = MultimodalLiveResponseType.SESSION_END;
-                this.data = statsData
-                    ? {
-                          messageCount: (statsData.message_count as number) || 0,
-                          audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
-                          elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
-                          totalTokenCount: (statsData.total_token_count as number) || 0,
-                          promptTokenCount: (statsData.prompt_token_count as number) || 0,
-                          candidatesTokenCount: (statsData.candidates_token_count as number) || 0,
-                      }
-                    : {
-                          messageCount: 0,
-                          audioChunksSent: 0,
-                          elapsedSeconds: 0,
-                          totalTokenCount: 0,
-                          promptTokenCount: 0,
-                          candidatesTokenCount: 0,
-                      };
-            } else if (rawData?.setupComplete) {
-                console.log("🏁 SETUP COMPLETE response", rawData);
-                this.type = MultimodalLiveResponseType.SETUP_COMPLETE;
-            } else if (serverContent?.turnComplete) {
-                console.log("🏁 TURN COMPLETE response");
-                this.type = MultimodalLiveResponseType.TURN_COMPLETE;
-            } else if (serverContent?.interrupted) {
-                console.log("🗣️ INTERRUPTED response");
-                this.type = MultimodalLiveResponseType.INTERRUPTED;
-            } else if (serverContent?.inputTranscription) {
-                const inputTranscription = serverContent.inputTranscription as Record<string, unknown>;
-                console.log("📝 INPUT TRANSCRIPTION:", inputTranscription);
-                this.type = MultimodalLiveResponseType.INPUT_TRANSCRIPTION;
-                this.data = {
-                    text: (inputTranscription.text as string) || "",
-                    finished: (inputTranscription.finished as boolean) || false,
-                };
-            } else if (serverContent?.outputTranscription) {
-                const outputTranscription = serverContent.outputTranscription as Record<string, unknown>;
-                console.log("📝 OUTPUT TRANSCRIPTION:", outputTranscription);
-                this.type = MultimodalLiveResponseType.OUTPUT_TRANSCRIPTION;
-                this.data = {
-                    text: (outputTranscription.text as string) || "",
-                    finished: (outputTranscription.finished as boolean) || false,
-                };
-            } else if (rawData?.toolCall) {
-                console.log("🎯 🛠️ TOOL CALL response", rawData?.toolCall);
+                        : {
+                              messageCount: 0,
+                              audioChunksSent: 0,
+                              elapsedSeconds: 0,
+                              totalTokenCount: 0,
+                              promptTokenCount: 0,
+                              responseTokenCount: 0,
+                          },
+                ));
+                return responses;
+            }
+
+            if (rawData?.setupComplete) {
+                console.log("SETUP COMPLETE response", rawData);
+                responses.push(new MultimodalLiveResponseMessage(MultimodalLiveResponseType.SETUP_COMPLETE));
+                return responses;
+            }
+
+            if (rawData?.toolCall) {
+                console.log("TOOL CALL response", rawData?.toolCall);
                 const sessionStatsRaw = rawData?.sessionStats as Record<string, unknown> | undefined;
                 const toolCallData = rawData?.toolCall as ToolCallData;
                 if (sessionStatsRaw) {
@@ -105,33 +109,98 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
                         elapsedSeconds: (sessionStatsRaw.elapsedSeconds as number) || 0,
                         totalTokenCount: (sessionStatsRaw.totalTokenCount as number) || 0,
                         promptTokenCount: (sessionStatsRaw.promptTokenCount as number) || 0,
-                        candidatesTokenCount: (sessionStatsRaw.candidatesTokenCount as number) || 0,
+                        responseTokenCount: (sessionStatsRaw.responseTokenCount as number) || 0,
                     };
                 }
-                this.type = MultimodalLiveResponseType.TOOL_CALL;
-                this.data = toolCallData;
-            } else if (rawData?.usageMetadata) {
+                responses.push(new MultimodalLiveResponseMessage(MultimodalLiveResponseType.TOOL_CALL, toolCallData));
+                return responses;
+            }
+
+            // serverContent fields — checked independently so none are dropped
+            if (serverContent) {
+                if (serverContent.inputTranscription) {
+                    const inputTranscription = serverContent.inputTranscription as Record<string, unknown>;
+                    console.log("INPUT TRANSCRIPTION:", inputTranscription);
+                    responses.push(new MultimodalLiveResponseMessage(
+                        MultimodalLiveResponseType.INPUT_TRANSCRIPTION,
+                        {
+                            text: (inputTranscription.text as string) || "",
+                            finished: (inputTranscription.finished as boolean) || false,
+                        },
+                    ));
+                }
+
+                if (serverContent.outputTranscription) {
+                    const outputTranscription = serverContent.outputTranscription as Record<string, unknown>;
+                    console.log("OUTPUT TRANSCRIPTION:", outputTranscription);
+                    responses.push(new MultimodalLiveResponseMessage(
+                        MultimodalLiveResponseType.OUTPUT_TRANSCRIPTION,
+                        {
+                            text: (outputTranscription.text as string) || "",
+                            finished: (outputTranscription.finished as boolean) || false,
+                        },
+                    ));
+                }
+
+                if (parts?.length && parts[0].text) {
+                    console.log("TEXT response", parts[0].text);
+                    responses.push(new MultimodalLiveResponseMessage(
+                        MultimodalLiveResponseType.TEXT,
+                        parts[0].text as string,
+                    ));
+                }
+
+                if (parts?.length && parts[0].inlineData) {
+                    console.log("AUDIO response");
+                    const inlineData = parts[0].inlineData as Record<string, unknown>;
+                    responses.push(new MultimodalLiveResponseMessage(
+                        MultimodalLiveResponseType.AUDIO,
+                        inlineData.data as string,
+                    ));
+                }
+
+                if (serverContent.generationComplete) {
+                    console.log("GENERATION COMPLETE response");
+                    responses.push(new MultimodalLiveResponseMessage(
+                        MultimodalLiveResponseType.GENERATION_COMPLETE,
+                        "",
+                        endOfTurn,
+                    ));
+                }
+
+                if (serverContent.turnComplete) {
+                    console.log("TURN COMPLETE response");
+                    responses.push(new MultimodalLiveResponseMessage(
+                        MultimodalLiveResponseType.TURN_COMPLETE,
+                        "",
+                        true,
+                    ));
+                }
+
+                if (serverContent.interrupted) {
+                    console.log("INTERRUPTED response");
+                    responses.push(new MultimodalLiveResponseMessage(MultimodalLiveResponseType.INTERRUPTED));
+                }
+            }
+
+            // usageMetadata can co-exist with serverContent
+            if (rawData?.usageMetadata) {
                 const usage = rawData.usageMetadata as Record<string, unknown>;
-                console.log("📊 USAGE METADATA response", usage);
-                this.type = MultimodalLiveResponseType.USAGE_METADATA;
-                this.data = {
-                    promptTokenCount: (usage.promptTokenCount as number) || 0,
-                    candidatesTokenCount: (usage.candidatesTokenCount as number) || 0,
-                    totalTokenCount: (usage.totalTokenCount as number) || 0,
-                };
-            } else if (parts?.length && parts[0].text) {
-                console.log("💬 TEXT response", parts[0].text);
-                this.data = parts[0].text as string;
-                this.type = MultimodalLiveResponseType.TEXT;
-            } else if (parts?.length && parts[0].inlineData) {
-                console.log("🔊 AUDIO response");
-                const inlineData = parts[0].inlineData as Record<string, unknown>;
-                this.data = inlineData.data as string;
-                this.type = MultimodalLiveResponseType.AUDIO;
+                console.log("USAGE METADATA response", usage);
+                responses.push(new MultimodalLiveResponseMessage(
+                    MultimodalLiveResponseType.USAGE_METADATA,
+                    {
+                        promptTokenCount: (usage.promptTokenCount as number) || 0,
+                        responseTokenCount: (usage.responseTokenCount as number) || 0,
+                        totalTokenCount: (usage.totalTokenCount as number) || 0,
+                    },
+                ));
             }
         } catch {
-            console.log("⚠️ Error parsing response data: ", rawData);
+            console.log("Error parsing response data: ", rawData);
         }
+
+        return responses;
     }
 }
 
@@ -198,8 +267,8 @@ export class GeminiLiveAPI {
         disabled: false,
         silence_duration_ms: 500,
         prefix_padding_ms: 50,
-        end_of_speech_sensitivity: "low",
-        start_of_speech_sensitivity: "low",
+        end_of_speech_sensitivity: "END_SENSITIVITY_LOW",
+        start_of_speech_sensitivity: "START_SENSITIVITY_LOW",
     };
 
     // State
@@ -337,26 +406,21 @@ export class GeminiLiveAPI {
     }
 
     private onReceiveMessage(messageEvent: MessageEvent): void {
-        console.log("Message received: ", messageEvent);
-
         // Handle binary audio data
         if (messageEvent.data instanceof ArrayBuffer) {
-            const message = new MultimodalLiveResponseMessage({
-                serverContent: {
-                    modelTurn: {
-                        parts: [{ inlineData: { data: messageEvent.data } }],
-                    },
-                },
-            });
-            message.type = MultimodalLiveResponseType.AUDIO;
-            message.data = messageEvent.data;
+            const message = new MultimodalLiveResponseMessage(
+                MultimodalLiveResponseType.AUDIO,
+                messageEvent.data,
+            );
             this.onReceiveResponse(message);
             return;
         }
 
         const messageData = JSON.parse(messageEvent.data);
-        const message = new MultimodalLiveResponseMessage(messageData);
-        this.onReceiveResponse(message);
+        const responses = MultimodalLiveResponseMessage.parseAll(messageData);
+        for (const response of responses) {
+            this.onReceiveResponse(response);
+        }
     }
 
     private setupWebSocketToService(url: string): void {

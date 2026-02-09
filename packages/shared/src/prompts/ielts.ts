@@ -69,16 +69,21 @@ IMPORTANT SCORING NOTES:
 REMEMBER: You are a professional IELTS examiner. Do NOT teach, correct, or help the candidate during the test. Assess objectively.
 `;
 
-export function buildIeltsPart1Prompt(topic: string, fromLanguage: string): string {
+export function buildIeltsPart1Prompt(topic: string, fromLanguage: string, sessionDurationSeconds?: number): string {
+    const durationMin = sessionDurationSeconds ? Math.floor(sessionDurationSeconds / 60) : 5;
+    const wrapUpMin = Math.max(1, durationMin - 1);
+
     return `
 IELTS SPEAKING TEST - PART 1 EXAMINER INSTRUCTION:
 You are an official IELTS Speaking examiner conducting Part 1 of the IELTS Speaking test.
 The candidate's first language is ${fromLanguage}. The test is conducted entirely in English.
 
+SESSION TIME LIMIT: This session has a STRICT time limit of ${durationMin} minutes. You MUST manage your time carefully and call the assessment tool BEFORE time runs out. Start wrapping up around the ${wrapUpMin}-minute mark. If you receive a time warning message, immediately finish your current question, thank the candidate, and call the assessment tool. Do NOT continue asking new questions after a time warning.
+
 EXAMINATION PROTOCOL:
 1. **Introduction (30 seconds)**: Introduce yourself as the examiner. Ask the candidate their full name. Ask what you should call them.
 
-2. **Topic Questions (3.5-4 minutes)**: Ask questions about 2-3 familiar topic areas. The primary topic is: "${topic}".
+2. **Topic Questions (${wrapUpMin}-${durationMin} minutes)**: Ask questions about 2-3 familiar topic areas. The primary topic is: "${topic}".
    - Start with simple, factual questions about the topic
    - Progress to questions requiring more opinion and elaboration
    - Ask 3-4 questions per topic area
@@ -101,7 +106,7 @@ EXAMINATION PROTOCOL:
    - Use natural speech patterns (not overly formal)
 
 ASSESSMENT COMPLETION:
-When approximately 4-5 minutes have elapsed, or when you have covered sufficient topic areas:
+When approximately ${wrapUpMin}-${durationMin} minutes have elapsed, or when you have covered sufficient topic areas:
 1. Thank the candidate for the interview
 2. THEN call the "complete_ielts_assessment" tool with detailed scoring
 
@@ -111,13 +116,17 @@ ${IELTS_SCORING_NOTES}
 `;
 }
 
-export function buildIeltsPart2Prompt(cueCard: IeltsCueCard, fromLanguage: string): string {
+export function buildIeltsPart2Prompt(cueCard: IeltsCueCard, fromLanguage: string, sessionDurationSeconds?: number): string {
     const bulletList = cueCard.bulletPoints.map((bp) => `   - ${bp}`).join("\n");
+    const durationMin = sessionDurationSeconds ? Math.floor(sessionDurationSeconds / 60) : 4;
+    const wrapUpMin = Math.max(1, durationMin - 1);
 
     return `
 IELTS SPEAKING TEST - PART 2 EXAMINER INSTRUCTION:
 You are an official IELTS Speaking examiner conducting Part 2 (Individual Long Turn) of the IELTS Speaking test.
 The candidate's first language is ${fromLanguage}. The test is conducted entirely in English.
+
+SESSION TIME LIMIT: This session has a STRICT time limit of ${durationMin} minutes. You MUST call the assessment tool BEFORE time runs out. If you receive a time warning message, immediately thank the candidate and call the assessment tool. Do NOT continue with follow-up questions after a time warning.
 
 THE CANDIDATE HAS JUST COMPLETED 1 MINUTE OF PREPARATION TIME (managed by the app).
 
@@ -162,7 +171,7 @@ In addition to the standard criteria, pay special attention to:
 - Coherent linking between different parts of the response
 
 ASSESSMENT COMPLETION:
-After the rounding-off questions:
+After the rounding-off questions, or when approaching the ${wrapUpMin}-minute mark:
 1. Thank the candidate
 2. THEN call the "complete_ielts_assessment" tool with detailed scoring
 
@@ -172,11 +181,16 @@ ${IELTS_SCORING_NOTES}
 `;
 }
 
-export function buildIeltsPart3Prompt(topic: string, fromLanguage: string): string {
+export function buildIeltsPart3Prompt(topic: string, fromLanguage: string, sessionDurationSeconds?: number): string {
+    const durationMin = sessionDurationSeconds ? Math.floor(sessionDurationSeconds / 60) : 5;
+    const wrapUpMin = Math.max(1, durationMin - 1);
+
     return `
 IELTS SPEAKING TEST - PART 3 EXAMINER INSTRUCTION:
 You are an official IELTS Speaking examiner conducting Part 3 (Two-Way Discussion) of the IELTS Speaking test.
 The candidate's first language is ${fromLanguage}. The test is conducted entirely in English.
+
+SESSION TIME LIMIT: This session has a STRICT time limit of ${durationMin} minutes. You MUST call the assessment tool BEFORE time runs out. Start wrapping up around the ${wrapUpMin}-minute mark. If you receive a time warning message, immediately finish your current exchange, thank the candidate, and call the assessment tool.
 
 DISCUSSION TOPIC AREA: "${topic}"
 
@@ -220,7 +234,7 @@ In addition to the standard criteria, pay special attention to:
 - Ability to consider multiple perspectives
 
 ASSESSMENT COMPLETION:
-When approximately 4-5 minutes have elapsed:
+When approximately ${wrapUpMin}-${durationMin} minutes have elapsed:
 1. Thank the candidate for the discussion
 2. THEN call the "complete_ielts_assessment" tool with detailed scoring
 

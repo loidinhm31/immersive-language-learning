@@ -180,7 +180,7 @@ pub struct UsageMetadata {
     #[serde(default)]
     pub prompt_token_count: Option<u32>,
     #[serde(default)]
-    pub candidates_token_count: Option<u32>,
+    pub response_token_count: Option<u32>,
     #[serde(default)]
     pub total_token_count: Option<u32>,
 }
@@ -279,7 +279,7 @@ pub struct ClientSessionStats {
 #[serde(rename_all = "camelCase")]
 pub struct ClientUsageMetadata {
     pub prompt_token_count: u32,
-    pub candidates_token_count: u32,
+    pub response_token_count: u32,
     pub total_token_count: u32,
 }
 

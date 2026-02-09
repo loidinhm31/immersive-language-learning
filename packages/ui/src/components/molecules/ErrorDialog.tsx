@@ -78,8 +78,8 @@ export function ErrorDialog({ isOpen, title, message, stats, tokenUsage, onClose
                                 total ({(tokenUsage?.promptTokenCount ?? stats?.promptTokenCount ?? 0).toLocaleString()}{" "}
                                 prompt,{" "}
                                 {(
-                                    tokenUsage?.candidatesTokenCount ??
-                                    stats?.candidatesTokenCount ??
+                                    tokenUsage?.responseTokenCount ??
+                                    stats?.responseTokenCount ??
                                     0
                                 ).toLocaleString()}{" "}
                                 response)

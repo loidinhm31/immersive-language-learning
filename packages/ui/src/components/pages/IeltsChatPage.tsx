@@ -313,7 +313,7 @@ export function IeltsPart1ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
         } else {
             setIsActive(true);
             try {
-                const systemInstructions = buildIeltsPart1Prompt(ieltsConfig.topic, fromLanguage);
+                const systemInstructions = buildIeltsPart1Prompt(ieltsConfig.topic, fromLanguage, IELTS_SESSION_DURATION);
                 await connect(
                     systemInstructions,
                     true, // always enable input transcription for assessment

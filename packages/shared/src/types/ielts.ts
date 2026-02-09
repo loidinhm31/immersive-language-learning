@@ -26,7 +26,7 @@ export interface IeltsAssessmentResult {
     audioChunksSent?: number;
     tokenUsage?: {
         promptTokenCount: number;
-        candidatesTokenCount: number;
+        responseTokenCount: number;
         totalTokenCount: number;
     };
 }
