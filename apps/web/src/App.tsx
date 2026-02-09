@@ -17,8 +17,14 @@ const HistoryPage = lazy(() => import("@immersive-lang/ui/components/pages").the
 const IeltsSetupPage = lazy(() =>
     import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsSetupPage })),
 );
-const IeltsChatPage = lazy(() =>
-    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsChatPage })),
+const IeltsPart1ChatPage = lazy(() =>
+    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsPart1ChatPage })),
+);
+const IeltsPart2ChatPage = lazy(() =>
+    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsPart2ChatPage })),
+);
+const IeltsPart3ChatPage = lazy(() =>
+    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsPart3ChatPage })),
 );
 const IeltsSummaryPage = lazy(() =>
     import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsSummaryPage })),
@@ -263,7 +269,12 @@ function IeltsSetupPageWrapper() {
     const handleStart = useCallback(
         (config: IeltsConfig) => {
             setIeltsConfig(config);
-            navigate("/ielts-chat");
+            const partRoutes = {
+                1: "/ielts-part1-chat",
+                2: "/ielts-part2-chat",
+                3: "/ielts-part3-chat",
+            } as const;
+            navigate(partRoutes[config.part]);
         },
         [navigate, setIeltsConfig],
     );
@@ -282,7 +293,7 @@ function IeltsSetupPageWrapper() {
     );
 }
 
-function IeltsChatPageWrapper() {
+function IeltsChatPageWrapper({ part }: { part: 1 | 2 | 3 }) {
     const navigate = useNavigate();
     const { state, setIeltsResult } = useAppState();
 
@@ -306,15 +317,17 @@ function IeltsChatPageWrapper() {
 
     if (!state.ieltsConfig) return null;
 
-    return (
-        <IeltsChatPage
-            ieltsConfig={state.ieltsConfig}
-            fromLanguage={state.selectedFromLanguage}
-            voice={state.selectedVoice}
-            onBack={handleBack}
-            onComplete={handleComplete}
-        />
-    );
+    const props = {
+        ieltsConfig: state.ieltsConfig,
+        fromLanguage: state.selectedFromLanguage,
+        voice: state.selectedVoice,
+        onBack: handleBack,
+        onComplete: handleComplete,
+    };
+
+    if (part === 2) return <IeltsPart2ChatPage {...props} />;
+    if (part === 3) return <IeltsPart3ChatPage {...props} />;
+    return <IeltsPart1ChatPage {...props} />;
 }
 
 function IeltsSummaryPageWrapper() {
@@ -323,18 +336,20 @@ function IeltsSummaryPageWrapper() {
     const { saveSession } = useSessionHistory();
     const sessionSavedRef = useRef(false);
 
+    const part = state.ieltsConfig?.part ?? 1;
+
     useEffect(() => {
         if (state.ieltsResult && !sessionSavedRef.current) {
             sessionSavedRef.current = true;
             saveSession({
                 mission: {
-                    id: 100,
-                    title: "IELTS Speaking Part 1",
+                    id: 100 + part,
+                    title: `IELTS Speaking Part ${part}`,
                     difficulty: "Expert",
                     desc: `Topic: ${state.ieltsConfig?.topic || "General"}`,
                     target_role: "IELTS Examiner",
                 },
-                language: "🇬🇧 English",
+                language: "English",
                 fromLanguage: state.selectedFromLanguage,
                 mode: "immergo_immersive",
                 voice: state.selectedVoice,
@@ -355,7 +370,7 @@ function IeltsSummaryPageWrapper() {
                 console.error("Failed to save IELTS session to history:", err);
             });
         }
-    }, [state.ieltsResult, state.ieltsConfig, state.selectedFromLanguage, state.selectedVoice, saveSession]);
+    }, [state.ieltsResult, state.ieltsConfig, state.selectedFromLanguage, state.selectedVoice, saveSession, part]);
 
     useEffect(() => {
         if (!state.ieltsResult) {
@@ -374,7 +389,9 @@ function IeltsSummaryPageWrapper() {
     return (
         <IeltsSummaryPage
             result={state.ieltsResult}
+            part={state.ieltsConfig?.part}
             topic={state.ieltsConfig?.topic}
+            cueCard={state.ieltsConfig?.cueCard}
             onBackToMissions={handleBackToMissions}
         />
     );
@@ -440,10 +457,26 @@ function App() {
                     }
                 />
                 <Route
-                    path="/ielts-chat"
+                    path="/ielts-part1-chat"
                     element={
                         <Suspense fallback={<PageLoader />}>
-                            <IeltsChatPageWrapper />
+                            <IeltsChatPageWrapper part={1} />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/ielts-part2-chat"
+                    element={
+                        <Suspense fallback={<PageLoader />}>
+                            <IeltsChatPageWrapper part={2} />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/ielts-part3-chat"
+                    element={
+                        <Suspense fallback={<PageLoader />}>
+                            <IeltsChatPageWrapper part={3} />
                         </Suspense>
                     }
                 />

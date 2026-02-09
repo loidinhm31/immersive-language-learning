@@ -1,10 +1,21 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useAppState } from "@immersive-lang/ui/contexts";
-import { SplashPage, MissionsPage, ChatPage, SummaryPage, HistoryPage } from "@immersive-lang/ui/components/pages";
+import {
+    SplashPage,
+    MissionsPage,
+    ChatPage,
+    SummaryPage,
+    HistoryPage,
+    IeltsSetupPage,
+    IeltsPart1ChatPage,
+    IeltsPart2ChatPage,
+    IeltsPart3ChatPage,
+    IeltsSummaryPage,
+} from "@immersive-lang/ui/components/pages";
 
 import { useSessionHistory } from "@immersive-lang/ui/hooks";
 
-import type { Mission, AppMode, SessionResult, SessionDuration } from "@immersive-lang/shared";
+import type { Mission, AppMode, SessionResult, SessionDuration, IeltsConfig, IeltsAssessmentResult } from "@immersive-lang/shared";
 import { AppShell } from "@immersive-lang/ui/components/templates";
 
 function App() {
@@ -16,6 +27,8 @@ function App() {
         setSelectedMode,
         setSelectedVoice,
         setSessionDuration,
+        setIeltsConfig,
+        setIeltsResult,
     } = useAppState();
 
     const { saveSession } = useSessionHistory();
@@ -120,6 +133,37 @@ function App() {
         navigate("history");
     }, [navigate]);
 
+    const handleIeltsAssessment = useCallback(() => {
+        navigate("ielts-setup");
+    }, [navigate]);
+
+    const handleIeltsStart = useCallback(
+        (config: IeltsConfig) => {
+            setIeltsConfig(config);
+            const partViews = { 1: "ielts-part1-chat", 2: "ielts-part2-chat", 3: "ielts-part3-chat" } as const;
+            navigate(partViews[config.part]);
+        },
+        [navigate, setIeltsConfig],
+    );
+
+    const handleIeltsChatBack = useCallback(() => {
+        navigate("ielts-setup");
+    }, [navigate]);
+
+    const handleIeltsChatComplete = useCallback(
+        (result: IeltsAssessmentResult) => {
+            setIeltsResult(result);
+            navigate("ielts-summary");
+        },
+        [navigate, setIeltsResult],
+    );
+
+    const handleIeltsSummaryBack = useCallback(() => {
+        setIeltsConfig(null);
+        setIeltsResult(null);
+        navigate("missions");
+    }, [navigate, setIeltsConfig, setIeltsResult]);
+
     const renderView = () => {
         switch (state.view) {
             case "splash":
@@ -140,6 +184,7 @@ function App() {
                         onSessionDurationChange={handleSessionDurationChange}
                         onMissionSelect={handleMissionSelect}
                         onViewHistory={handleViewHistory}
+                        onIeltsAssessment={handleIeltsAssessment}
                     />
                 );
 
@@ -170,6 +215,76 @@ function App() {
 
             case "history":
                 return <HistoryPage onBack={handleHistoryBack} />;
+
+            case "ielts-setup":
+                return (
+                    <IeltsSetupPage
+                        voice={state.selectedVoice}
+                        onVoiceChange={setSelectedVoice}
+                        onStart={handleIeltsStart}
+                        onBack={handleChatBack}
+                    />
+                );
+
+            case "ielts-part1-chat":
+                if (!state.ieltsConfig) {
+                    navigate("ielts-setup");
+                    return null;
+                }
+                return (
+                    <IeltsPart1ChatPage
+                        ieltsConfig={state.ieltsConfig}
+                        fromLanguage={state.selectedFromLanguage}
+                        voice={state.selectedVoice}
+                        onBack={handleIeltsChatBack}
+                        onComplete={handleIeltsChatComplete}
+                    />
+                );
+
+            case "ielts-part2-chat":
+                if (!state.ieltsConfig) {
+                    navigate("ielts-setup");
+                    return null;
+                }
+                return (
+                    <IeltsPart2ChatPage
+                        ieltsConfig={state.ieltsConfig}
+                        fromLanguage={state.selectedFromLanguage}
+                        voice={state.selectedVoice}
+                        onBack={handleIeltsChatBack}
+                        onComplete={handleIeltsChatComplete}
+                    />
+                );
+
+            case "ielts-part3-chat":
+                if (!state.ieltsConfig) {
+                    navigate("ielts-setup");
+                    return null;
+                }
+                return (
+                    <IeltsPart3ChatPage
+                        ieltsConfig={state.ieltsConfig}
+                        fromLanguage={state.selectedFromLanguage}
+                        voice={state.selectedVoice}
+                        onBack={handleIeltsChatBack}
+                        onComplete={handleIeltsChatComplete}
+                    />
+                );
+
+            case "ielts-summary":
+                if (!state.ieltsResult) {
+                    navigate("missions");
+                    return null;
+                }
+                return (
+                    <IeltsSummaryPage
+                        result={state.ieltsResult}
+                        part={state.ieltsConfig?.part}
+                        topic={state.ieltsConfig?.topic}
+                        cueCard={state.ieltsConfig?.cueCard}
+                        onBackToMissions={handleIeltsSummaryBack}
+                    />
+                );
 
             default:
                 return <SplashPage onStart={handleStart} />;

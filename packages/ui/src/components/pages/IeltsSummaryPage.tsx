@@ -1,5 +1,5 @@
 import { Clock, MessageSquare, Mic, Coins, PenLine, Volume2 } from "lucide-react";
-import type { IeltsAssessmentResult, IeltsCriterionFeedback } from "@immersive-lang/shared";
+import type { IeltsAssessmentResult, IeltsCriterionFeedback, IeltsCueCard, IeltsPart } from "@immersive-lang/shared";
 import { IELTS_BAND_LABELS } from "@immersive-lang/shared";
 import { Button, Card } from "@immersive-lang/ui/components/atoms";
 
@@ -64,24 +64,39 @@ function CriterionCard({ feedback }: { feedback: IeltsCriterionFeedback }) {
 
 export interface IeltsSummaryPageProps {
     result: IeltsAssessmentResult;
+    part?: IeltsPart;
     topic?: string;
+    cueCard?: IeltsCueCard;
     onBackToMissions: () => void;
     onBackToHistory?: () => void;
 }
 
-export function IeltsSummaryPage({ result, topic, onBackToMissions, onBackToHistory }: IeltsSummaryPageProps) {
+export function IeltsSummaryPage({ result, part = 1, topic, cueCard, onBackToMissions, onBackToHistory }: IeltsSummaryPageProps) {
     const isIncomplete = result.bandScores.overallBand === 0 && result.criterionFeedback.length === 0;
 
     return (
         <div className="max-w-[560px] mx-auto px-6 py-8 text-center min-h-screen flex flex-col">
             <h2 className="mt-8 font-heading text-accent-secondary">
-                IELTS Speaking Part 1 Results
+                IELTS Speaking Part {part} Results
             </h2>
 
             {topic && (
                 <p className="text-text-sub text-sm mt-1">
-                    Topic: <span className="font-bold text-text-main">{topic}</span>
+                    {part === 3 ? "Discussion" : "Topic"}: <span className="font-bold text-text-main">{topic}</span>
                 </p>
+            )}
+
+            {cueCard && part === 2 && (
+                <div className="mt-3 mx-auto max-w-100 text-left bg-surface border border-glass-border rounded-xl p-4">
+                    <div className="text-xs font-bold text-accent-secondary uppercase tracking-wider mb-1">Task Card</div>
+                    <p className="text-sm font-bold text-text-main mb-1">{cueCard.topic}</p>
+                    <ul className="list-disc pl-4 text-xs text-text-sub space-y-0.5">
+                        {cueCard.bulletPoints.map((bp, i) => (
+                            <li key={i}>{bp}</li>
+                        ))}
+                    </ul>
+                    <p className="text-xs text-accent-secondary/70 mt-1 italic">{cueCard.followUp}</p>
+                </div>
             )}
 
             {isIncomplete ? (

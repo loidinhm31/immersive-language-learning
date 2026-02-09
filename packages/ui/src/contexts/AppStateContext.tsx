@@ -74,7 +74,10 @@ const VIEW_TO_PATH: Record<AppView, string> = {
     summary: "/summary",
     history: "/history",
     "ielts-setup": "/ielts-setup",
-    "ielts-chat": "/ielts-chat",
+    "ielts-chat": "/ielts-part1-chat",
+    "ielts-part1-chat": "/ielts-part1-chat",
+    "ielts-part2-chat": "/ielts-part2-chat",
+    "ielts-part3-chat": "/ielts-part3-chat",
     "ielts-summary": "/ielts-summary",
 };
 
@@ -85,7 +88,9 @@ const PATH_TO_VIEW: Record<string, AppView> = {
     "/summary": "summary",
     "/history": "history",
     "/ielts-setup": "ielts-setup",
-    "/ielts-chat": "ielts-chat",
+    "/ielts-part1-chat": "ielts-part1-chat",
+    "/ielts-part2-chat": "ielts-part2-chat",
+    "/ielts-part3-chat": "ielts-part3-chat",
     "/ielts-summary": "ielts-summary",
 };
 

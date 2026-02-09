@@ -5,6 +5,7 @@ export interface SessionTimerProps {
     sessionDuration: number | null;
     warningThreshold?: number;
     dangerThreshold?: number;
+    showElapsed?: boolean;
     className?: string;
 }
 
@@ -19,12 +20,14 @@ export function SessionTimer({
     sessionDuration,
     warningThreshold = 60,
     dangerThreshold = 30,
+    showElapsed = false,
     className,
 }: SessionTimerProps) {
     if (remainingTime === null || sessionDuration === null) {
         return null;
     }
 
+    const elapsed = sessionDuration - remainingTime;
     const progress = (remainingTime / sessionDuration) * 100;
     const isWarning = remainingTime <= warningThreshold && remainingTime > dangerThreshold;
     const isDanger = remainingTime <= dangerThreshold;
@@ -35,6 +38,11 @@ export function SessionTimer({
 
     return (
         <div className={cn("flex flex-col items-end gap-1", className)}>
+            {showElapsed && (
+                <div className="font-mono text-sm text-cream/50">
+                    {formatTime(elapsed)}
+                </div>
+            )}
             <div className={cn("font-mono text-lg font-semibold", textColor)}>{formatTime(remainingTime)}</div>
             <div className="w-24 h-1.5 bg-cream/20 rounded-full overflow-hidden">
                 <div
