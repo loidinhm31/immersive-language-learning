@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { History, type LucideIcon, Target } from "lucide-react";
+import { History, type LucideIcon, Settings, Target } from "lucide-react";
 import { useNav } from "@immersive-lang/ui/hooks";
 
 export interface NavItem {
@@ -20,6 +20,7 @@ export interface SidebarProps {
 const defaultNavItems: NavItem[] = [
     { label: "Missions", href: "/missions", icon: Target },
     { label: "History", href: "/history", icon: History },
+    { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar({ items = defaultNavItems, header, footer, className = "" }: SidebarProps) {

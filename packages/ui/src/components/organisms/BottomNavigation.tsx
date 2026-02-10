@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Target, History, type LucideIcon } from "lucide-react";
+import { Target, History, Settings, type LucideIcon } from "lucide-react";
 import { useNav } from "@immersive-lang/ui/hooks";
 
 export interface BottomNavItem {
@@ -17,6 +17,7 @@ export interface BottomNavigationProps {
 const defaultItems: BottomNavItem[] = [
     { label: "Missions", href: "/missions", icon: Target },
     { label: "History", href: "/history", icon: History },
+    { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function BottomNavigation({ items = defaultItems, className = "" }: BottomNavigationProps) {

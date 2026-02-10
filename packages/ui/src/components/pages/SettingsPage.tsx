@@ -1,121 +1,74 @@
-import { Card, Button } from "@immersive-lang/ui/components/atoms";
+import React from "react";
 import { SyncSettings } from "@immersive-lang/ui/components/organisms";
-import { LogOut, LogIn } from "lucide-react";
-import { useAuth } from "@immersive-lang/ui/hooks";
-import { useNav } from "@immersive-lang/ui/hooks";
+import { useAuth, useNav } from "@immersive-lang/ui/hooks";
+import { Button, Card } from "@immersive-lang/ui/components/atoms";
+import { LogIn, LogOut } from "lucide-react";
 
 export interface SettingsPageProps {
     onLogout?: () => void;
 }
 
-export const SettingsPage = ({ onLogout }: SettingsPageProps) => {
-    const { isAuthenticated, status, logout } = useAuth();
+export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
     const { nav } = useNav();
+    const { isAuthenticated, status, logout } = useAuth();
 
     const handleLogout = async () => {
         await logout();
-        if (onLogout) {
-            onLogout();
-        }
-    };
-
-    const handleLoginClick = () => {
-        nav("/login");
+        onLogout?.();
     };
 
     return (
-        <div style={{ maxWidth: "32rem", margin: "0 auto", padding: "2rem 1rem" }}>
-            <h1
-                style={{
-                    fontSize: "2rem",
-                    fontWeight: "bold",
-                    marginBottom: "2rem",
-                    background: "linear-gradient(135deg, #61bf7b 0%, #d4a600 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                }}
-            >
-                Settings
-            </h1>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                {/* Auth Card */}
-                <Card style={{ padding: "1.5rem" }}>
-                    <h3 style={{ fontSize: "1.125rem", fontWeight: "600", marginBottom: "1rem" }}>Account</h3>
-
+        <div className="max-w-lg mx-auto space-y-6">
+            {/* Login Settings */}
+            <Card className="mb-6">
+                <div className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                            <LogIn className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold">
+                                {isAuthenticated ? "Account" : "Login to connect to server"}
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {isAuthenticated
+                                    ? "Manage your account connection"
+                                    : "Connect your account to sync data across devices"}
+                            </p>
+                        </div>
+                    </div>
                     {isAuthenticated ? (
                         <div>
-                            <div style={{ marginBottom: "1rem" }}>
-                                <p
-                                    style={{
-                                        fontSize: "0.875rem",
-                                        color: "rgba(255, 255, 255, 0.6)",
-                                        marginBottom: "0.25rem",
-                                    }}
-                                >
-                                    Email
-                                </p>
-                                <p style={{ fontSize: "1rem", fontWeight: "500", margin: 0 }}>
-                                    {status?.email || "Not available"}
-                                </p>
-                            </div>
-
-                            {status?.username && (
-                                <div style={{ marginBottom: "1rem" }}>
-                                    <p
-                                        style={{
-                                            fontSize: "0.875rem",
-                                            color: "rgba(255, 255, 255, 0.6)",
-                                            marginBottom: "0.25rem",
-                                        }}
-                                    >
-                                        Username
-                                    </p>
-                                    <p style={{ fontSize: "1rem", fontWeight: "500", margin: 0 }}>{status.username}</p>
+                            {status?.email && (
+                                <div className="mb-3">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-0.5">Email</p>
+                                    <p className="text-base font-medium">{status.email}</p>
                                 </div>
                             )}
-
+                            {status?.username && (
+                                <div className="mb-3">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-0.5">Username</p>
+                                    <p className="text-base font-medium">{status.username}</p>
+                                </div>
+                            )}
                             <Button
+                                variant="ghost"
+                                className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 onClick={handleLogout}
-                                style={{
-                                    width: "100%",
-                                    marginTop: "0.5rem",
-                                    background: "linear-gradient(135deg, #dc2626 0%, #991b1b 100%)",
-                                }}
                             >
-                                <LogOut style={{ width: "1rem", height: "1rem", marginRight: "0.5rem" }} />
+                                <LogOut className="w-4 h-4 mr-2" />
                                 Logout
                             </Button>
                         </div>
                     ) : (
-                        <div>
-                            <p
-                                style={{
-                                    fontSize: "0.875rem",
-                                    color: "rgba(255, 255, 255, 0.6)",
-                                    marginBottom: "1rem",
-                                }}
-                            >
-                                You are not logged in. Login to enable cloud sync across devices.
-                            </p>
-                            <Button
-                                onClick={handleLoginClick}
-                                style={{
-                                    width: "100%",
-                                    background: "linear-gradient(135deg, #61bf7b 0%, #509f63 100%)",
-                                }}
-                            >
-                                <LogIn style={{ width: "1rem", height: "1rem", marginRight: "0.5rem" }} />
-                                Login / Register
-                            </Button>
-                        </div>
+                        <Button variant="primary" className="w-full" onClick={() => nav("/login")}>
+                            <LogIn className="w-4 h-4 mr-2" />
+                            Login / Register
+                        </Button>
                     )}
-                </Card>
-
-                {/* Sync Settings */}
-                <SyncSettings />
-            </div>
+                </div>
+            </Card>
+            <SyncSettings />
         </div>
     );
 };

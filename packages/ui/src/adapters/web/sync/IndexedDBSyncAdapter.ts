@@ -155,17 +155,18 @@ export class IndexedDBSyncAdapter implements ISyncService {
     }
 
     async getStatus(): Promise<SyncStatus> {
-        const pendingChanges = await this.storage.getPendingChangesCount();
-        const lastSyncAt = await this.storage.getLastSyncAt();
-        const serverUrl = await getSyncMeta(SYNC_META_KEYS.SERVER_URL);
+        const [pendingChanges, lastSyncAt] = await Promise.all([
+            this.storage.getPendingChangesCount(),
+            this.storage.getLastSyncAt(),
+        ]);
         const tokens = await this.getTokens();
 
         return {
-            configured: !!serverUrl,
+            configured: true,
             authenticated: !!(tokens.accessToken && tokens.refreshToken),
             lastSyncAt: lastSyncAt ?? undefined,
             pendingChanges,
-            serverUrl: serverUrl ?? undefined,
+            serverUrl: this.client.config.serverUrl,
             isSyncing: this.isSyncingFlag,
         };
     }
