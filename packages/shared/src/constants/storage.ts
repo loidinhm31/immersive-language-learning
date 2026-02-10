@@ -23,6 +23,11 @@ export const SYNC_STORAGE_KEYS = {
     LAST_SYNC: "immersive-lang-last-sync",
 } as const;
 
+export const GEMINI_STORAGE_KEYS = {
+    /** Encrypted Gemini API key for localStorage */
+    API_KEY: "immersive-lang-gemini-api-key",
+} as const;
+
 export const APP_ID = "immersive-lang";
 
 export const API_ENDPOINTS = {

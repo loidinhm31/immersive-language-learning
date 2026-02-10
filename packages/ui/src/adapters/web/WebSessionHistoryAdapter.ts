@@ -17,6 +17,8 @@ interface DbSessionHistory {
     voice: string;
     result_json: string;
     completed_at: number;
+    ielts_result_json?: string | null;
+    ielts_config_json?: string | null;
     sync_version: number;
     synced_at: number | null;
     deleted: number; // 0 or 1
@@ -27,7 +29,7 @@ class SessionHistoryDatabase extends Dexie {
     sessions!: Table<DbSessionHistory>;
 
     constructor() {
-        super("immergo_session_history");
+        super("ImmergoDB");
         this.version(1).stores({
             sessions: "id, completed_at, language, from_language, mode, deleted, sync_version, synced_at",
         });
@@ -47,6 +49,8 @@ export class WebSessionHistoryAdapter implements ISessionHistoryService {
             voice: entry.voice,
             result_json: JSON.stringify(entry.result),
             completed_at: entry.completedAt,
+            ielts_result_json: entry.ieltsResult ? JSON.stringify(entry.ieltsResult) : null,
+            ielts_config_json: entry.ieltsConfig ? JSON.stringify(entry.ieltsConfig) : null,
             sync_version: entry.sync_version ?? 1,
             synced_at: entry.synced_at ?? null,
             deleted: entry.deleted ? 1 : 0,
@@ -64,6 +68,8 @@ export class WebSessionHistoryAdapter implements ISessionHistoryService {
             voice: row.voice,
             result: JSON.parse(row.result_json),
             completedAt: row.completed_at,
+            ieltsResult: row.ielts_result_json ? JSON.parse(row.ielts_result_json) : undefined,
+            ieltsConfig: row.ielts_config_json ? JSON.parse(row.ielts_config_json) : undefined,
             sync_version: row.sync_version,
             synced_at: row.synced_at,
             deleted: row.deleted === 1,

@@ -29,6 +29,7 @@ export function SessionCard({ entry, onDelete, onView }: SessionCardProps) {
     const result = entry.result;
     const isIncomplete = result.incomplete;
     const hasScore = !isIncomplete && result.score && result.score !== "0";
+    const isIelts = !!entry.ieltsResult;
 
     return (
         <Card className="mb-3 hover:bg-surface/80 transition-colors">
@@ -38,7 +39,12 @@ export function SessionCard({ entry, onDelete, onView }: SessionCardProps) {
                         <span className="font-heading text-text-main truncate">
                             {entry.mission?.title || "Freestyle Session"}
                         </span>
-                        {entry.mission?.difficulty && (
+                        {isIelts && entry.ieltsConfig?.part && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-accent-secondary/10 text-accent-secondary">
+                                Part {entry.ieltsConfig.part}
+                            </span>
+                        )}
+                        {entry.mission?.difficulty && !isIelts && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-accent-primary/10 text-accent-primary">
                                 {entry.mission.difficulty}
                             </span>
@@ -84,7 +90,13 @@ export function SessionCard({ entry, onDelete, onView }: SessionCardProps) {
 
                     {hasScore && (
                         <div className="mt-2 flex items-center gap-2">
-                            <ScoreBadge score={result.score!} />
+                            {isIelts && entry.ieltsResult ? (
+                                <span className="text-sm font-semibold px-3 py-1 rounded-full bg-accent-primary/10 text-accent-primary">
+                                    Band {entry.ieltsResult.bandScores.overallBand}
+                                </span>
+                            ) : (
+                                <ScoreBadge score={result.score!} />
+                            )}
                             {result.grammarCorrections && result.grammarCorrections.length > 0 && (
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">
                                     <PenLine size={10} />

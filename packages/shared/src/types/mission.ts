@@ -47,7 +47,18 @@ import type { IeltsConfig, IeltsAssessmentResult } from "./ielts";
 
 export type AppMode = "immergo_immersive" | "immergo_teacher";
 
-export type AppView = "splash" | "missions" | "chat" | "summary" | "history" | "ielts-setup" | "ielts-chat" | "ielts-part1-chat" | "ielts-part2-chat" | "ielts-part3-chat" | "ielts-summary";
+export type AppView =
+    | "splash"
+    | "missions"
+    | "chat"
+    | "summary"
+    | "history"
+    | "ielts-setup"
+    | "ielts-chat"
+    | "ielts-part1-chat"
+    | "ielts-part2-chat"
+    | "ielts-part3-chat"
+    | "ielts-summary";
 
 export interface SessionResult {
     incomplete?: boolean;
@@ -93,6 +104,8 @@ export interface SessionHistoryEntry {
     voice: string;
     result: SessionResult;
     completedAt: number; // Unix timestamp
+    ieltsResult?: IeltsAssessmentResult;
+    ieltsConfig?: IeltsConfig;
     // Sync fields for SQLite
     sync_version?: number;
     synced_at?: number | null;

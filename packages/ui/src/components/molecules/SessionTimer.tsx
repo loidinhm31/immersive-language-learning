@@ -38,11 +38,7 @@ export function SessionTimer({
 
     return (
         <div className={cn("flex flex-col items-end gap-1", className)}>
-            {showElapsed && (
-                <div className="font-mono text-sm text-cream/50">
-                    {formatTime(elapsed)}
-                </div>
-            )}
+            {showElapsed && <div className="font-mono text-sm text-cream/50">{formatTime(elapsed)}</div>}
             <div className={cn("font-mono text-lg font-semibold", textColor)}>{formatTime(remainingTime)}</div>
             <div className="w-24 h-1.5 bg-cream/20 rounded-full overflow-hidden">
                 <div

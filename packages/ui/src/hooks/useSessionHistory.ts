@@ -1,5 +1,12 @@
 import { useState, useCallback } from "react";
-import type { SessionHistoryEntry, Mission, AppMode, SessionResult } from "@immersive-lang/shared";
+import type {
+    SessionHistoryEntry,
+    Mission,
+    AppMode,
+    SessionResult,
+    IeltsAssessmentResult,
+    IeltsConfig,
+} from "@immersive-lang/shared";
 import { ServiceFactory } from "@immersive-lang/ui/adapters";
 import type { SessionHistoryFilter } from "@immersive-lang/ui/adapters/factory/interfaces";
 
@@ -20,6 +27,8 @@ export interface SaveSessionParams {
     mode: AppMode;
     voice: string;
     result: SessionResult;
+    ieltsResult?: IeltsAssessmentResult;
+    ieltsConfig?: IeltsConfig;
 }
 
 function generateId(): string {
@@ -57,6 +66,8 @@ export function useSessionHistory(): UseSessionHistoryReturn {
                 voice: params.voice,
                 result: params.result,
                 completedAt: Date.now(),
+                ieltsResult: params.ieltsResult,
+                ieltsConfig: params.ieltsConfig,
                 sync_version: 1,
                 synced_at: null,
                 deleted: false,

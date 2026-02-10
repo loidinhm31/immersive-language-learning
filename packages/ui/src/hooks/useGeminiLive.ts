@@ -10,6 +10,8 @@ import {
     type ErrorData,
     type CompleteMissionArgs,
     AUTH_STORAGE_KEYS,
+    GEMINI_STORAGE_KEYS,
+    decryptFromStorage,
 } from "@immersive-lang/shared";
 
 export interface SessionError {
@@ -308,7 +310,19 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                 // Connect via qm-center-server (JWT auth for session token)
                 // Read token from localStorage if not explicitly provided
                 const resolvedToken = jwtToken ?? localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN) ?? undefined;
-                await client.connect(null, sessionDuration, resolvedToken);
+
+                // Read and decrypt Gemini API key from storage if available
+                let geminiApiKey: string | undefined;
+                try {
+                    const encryptedKey = localStorage.getItem(GEMINI_STORAGE_KEYS.API_KEY);
+                    if (encryptedKey) {
+                        geminiApiKey = await decryptFromStorage(encryptedKey);
+                    }
+                } catch (err) {
+                    console.warn("Failed to decrypt Gemini API key from storage:", err);
+                }
+
+                await client.connect(null, sessionDuration, resolvedToken, geminiApiKey);
 
                 // Start audio streaming
                 await streamer.start();

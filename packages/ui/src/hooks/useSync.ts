@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { SyncStatus, SyncResult } from "@immersive-lang/shared";
+import type { SyncStatus, SyncResult, SyncConfig } from "@immersive-lang/shared";
 import { useSyncService } from "@immersive-lang/ui/platform";
 
 export interface UseSyncReturn {
@@ -8,6 +8,7 @@ export interface UseSyncReturn {
     error: string | null;
     isSyncing: boolean;
     syncNow: () => Promise<SyncResult>;
+    configure: (config: SyncConfig) => Promise<void>;
     refreshStatus: () => Promise<void>;
 }
 
@@ -62,6 +63,20 @@ export const useSync = (): UseSyncReturn => {
         }
     }, [syncService, refreshStatus]);
 
+    const configure = useCallback(
+        async (config: SyncConfig) => {
+            try {
+                setError(null);
+                await syncService.configure(config);
+                await refreshStatus();
+            } catch (err) {
+                const errorMsg = err instanceof Error ? err.message : "Failed to configure sync";
+                setError(errorMsg);
+            }
+        },
+        [syncService, refreshStatus],
+    );
+
     // Refresh status on mount
     useEffect(() => {
         refreshStatus();
@@ -73,6 +88,7 @@ export const useSync = (): UseSyncReturn => {
         error,
         isSyncing,
         syncNow,
+        configure,
         refreshStatus,
     };
 };

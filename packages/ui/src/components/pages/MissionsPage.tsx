@@ -179,9 +179,7 @@ export function MissionsPage({
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-xl font-heading font-bold text-text-main">
-                                        IELTS Speaking Part 1
-                                    </h3>
+                                    <h3 className="text-xl font-heading font-bold text-text-main">IELTS Speaking</h3>
                                     <span className="text-xs font-bold uppercase tracking-wider text-accent-secondary bg-accent-secondary/10 px-2 py-0.5 rounded-full">
                                         Assessment
                                     </span>

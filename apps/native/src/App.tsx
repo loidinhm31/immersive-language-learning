@@ -15,7 +15,14 @@ import {
 
 import { useSessionHistory } from "@immersive-lang/ui/hooks";
 
-import type { Mission, AppMode, SessionResult, SessionDuration, IeltsConfig, IeltsAssessmentResult } from "@immersive-lang/shared";
+import type {
+    Mission,
+    AppMode,
+    SessionResult,
+    SessionDuration,
+    IeltsConfig,
+    IeltsAssessmentResult,
+} from "@immersive-lang/shared";
 import { AppShell } from "@immersive-lang/ui/components/templates";
 
 function App() {

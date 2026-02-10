@@ -1,14 +1,27 @@
+import { useState, useEffect } from "react";
 import { Button, Card, Input, Label, Badge } from "@immersive-lang/ui/components/atoms";
 import { Cloud, CloudOff, Loader2, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { useSync } from "@immersive-lang/ui/hooks";
 import { useAuth } from "@immersive-lang/ui/hooks";
 
 export const SyncSettings = () => {
-    const { status, lastResult, isSyncing, syncNow } = useSync();
+    const { status, lastResult, isSyncing, syncNow, configure } = useSync();
     const { isAuthenticated } = useAuth();
+    const [serverUrl, setServerUrl] = useState("");
+
+    useEffect(() => {
+        if (status?.serverUrl) {
+            setServerUrl(status.serverUrl);
+        }
+    }, [status?.serverUrl]);
 
     const handleSync = async () => {
         await syncNow();
+    };
+
+    const handleConfigureSync = async () => {
+        if (!serverUrl) return;
+        await configure({ serverUrl });
     };
 
     const formatTimestamp = (timestamp?: number) => {
@@ -108,15 +121,18 @@ export const SyncSettings = () => {
                         <Label htmlFor="server-url">Server URL</Label>
                         <Input
                             id="server-url"
-                            type="url"
+                            type="text"
                             placeholder="http://localhost:3000"
-                            value={status?.serverUrl || ""}
-                            disabled
+                            value={serverUrl}
+                            onChange={(e) => setServerUrl(e.target.value)}
                         />
                         <p className="text-xs text-white/50 mt-1 mb-0">
                             Current server: {status?.serverUrl || "Not configured"}
                         </p>
                     </div>
+                    <Button variant="secondary" size="sm" onClick={handleConfigureSync} disabled={!serverUrl}>
+                        Save Configuration
+                    </Button>
                 </div>
             </Card>
         </div>

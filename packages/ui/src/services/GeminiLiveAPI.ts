@@ -345,7 +345,7 @@ export class GeminiLiveAPI {
         }
     }
 
-    async connect(token: string | null, sessionDuration?: number, jwtToken?: string): Promise<void> {
+    async connect(token: string | null, sessionDuration?: number, jwtToken?: string, apiKey?: string): Promise<void> {
         try {
             // 1. Authenticate
             const baseUrl = env.apiBaseUrl;
@@ -363,6 +363,7 @@ export class GeminiLiveAPI {
                 headers,
                 body: JSON.stringify({
                     ...(sessionDuration && { session_duration: sessionDuration }),
+                    ...(apiKey && { api_key: apiKey }),
                 }),
             });
 

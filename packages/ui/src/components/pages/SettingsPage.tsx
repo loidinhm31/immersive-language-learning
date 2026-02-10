@@ -1,5 +1,5 @@
 import React from "react";
-import { SyncSettings } from "@immersive-lang/ui/components/organisms";
+import { SyncSettings, GeminiSettings } from "@immersive-lang/ui/components/organisms";
 import { useAuth, useNav } from "@immersive-lang/ui/hooks";
 import { Button, Card } from "@immersive-lang/ui/components/atoms";
 import { LogIn, LogOut } from "lucide-react";
@@ -68,6 +68,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
                     )}
                 </div>
             </Card>
+            <GeminiSettings />
             <SyncSettings />
         </div>
     );

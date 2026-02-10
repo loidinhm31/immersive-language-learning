@@ -77,11 +77,7 @@ export function ErrorDialog({ isOpen, title, message, stats, tokenUsage, onClose
                                 Tokens: {(tokenUsage?.totalTokenCount ?? stats?.totalTokenCount ?? 0).toLocaleString()}{" "}
                                 total ({(tokenUsage?.promptTokenCount ?? stats?.promptTokenCount ?? 0).toLocaleString()}{" "}
                                 prompt,{" "}
-                                {(
-                                    tokenUsage?.responseTokenCount ??
-                                    stats?.responseTokenCount ??
-                                    0
-                                ).toLocaleString()}{" "}
+                                {(tokenUsage?.responseTokenCount ?? stats?.responseTokenCount ?? 0).toLocaleString()}{" "}
                                 response)
                             </div>
                         )}

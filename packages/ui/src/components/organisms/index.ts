@@ -1,4 +1,5 @@
 export { SyncSettings } from "./SyncSettings";
+export { GeminiSettings } from "./GeminiSettings";
 export { BottomNavigation } from "./BottomNavigation";
 export { Sidebar } from "./Sidebar";
 export { LanguageSelector } from "./LanguageSelector";
