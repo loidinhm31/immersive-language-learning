@@ -33,7 +33,9 @@ export function playSound(audio: HTMLAudioElement): void {
     }
 }
 
-export function buildIeltsAssessmentTool(onComplete: (args: CompleteIeltsAssessmentArgs) => void): FunctionCallDefinition {
+export function buildIeltsAssessmentTool(
+    onComplete: (args: CompleteIeltsAssessmentArgs) => void,
+): FunctionCallDefinition {
     const tool = new FunctionCallDefinition(
         "complete_ielts_assessment",
         "Call this tool when the IELTS Speaking assessment is complete. Provide detailed band scores and feedback for each criterion based on the official IELTS band descriptors.",
@@ -79,8 +81,7 @@ export function buildIeltsAssessmentTool(onComplete: (args: CompleteIeltsAssessm
                 overall_comments: {
                     type: "ARRAY",
                     items: { type: "STRING" },
-                    description:
-                        "2-3 general observations about the candidate's overall English speaking ability",
+                    description: "2-3 general observations about the candidate's overall English speaking ability",
                 },
                 grammar_corrections: {
                     type: "ARRAY",
@@ -305,7 +306,13 @@ export function IeltsPart1ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
             setIsActive(false);
             // Incomplete assessment - no scores
             onComplete({
-                bandScores: { fluencyAndCoherence: 0, lexicalResource: 0, grammaticalRangeAndAccuracy: 0, pronunciation: 0, overallBand: 0 },
+                bandScores: {
+                    fluencyAndCoherence: 0,
+                    lexicalResource: 0,
+                    grammaticalRangeAndAccuracy: 0,
+                    pronunciation: 0,
+                    overallBand: 0,
+                },
                 criterionFeedback: [],
                 overallComments: ["Assessment ended early by the candidate."],
                 topicsCovered: [],
@@ -313,7 +320,11 @@ export function IeltsPart1ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
         } else {
             setIsActive(true);
             try {
-                const systemInstructions = buildIeltsPart1Prompt(ieltsConfig.topic, fromLanguage, IELTS_SESSION_DURATION);
+                const systemInstructions = buildIeltsPart1Prompt(
+                    ieltsConfig.topic,
+                    fromLanguage,
+                    IELTS_SESSION_DURATION,
+                );
                 await connect(
                     systemInstructions,
                     true, // always enable input transcription for assessment

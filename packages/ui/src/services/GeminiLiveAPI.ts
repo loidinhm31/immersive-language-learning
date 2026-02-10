@@ -46,9 +46,8 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
                 const errorData = rawData.error as Record<string, unknown>;
                 const statsData = errorData.stats as Record<string, unknown> | undefined;
                 console.log("ERROR response", errorData);
-                responses.push(new MultimodalLiveResponseMessage(
-                    MultimodalLiveResponseType.ERROR,
-                    {
+                responses.push(
+                    new MultimodalLiveResponseMessage(MultimodalLiveResponseType.ERROR, {
                         message: (errorData.message as string) || "Unknown error",
                         stats: statsData
                             ? {
@@ -60,8 +59,8 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
                                   responseTokenCount: (statsData.response_token_count as number) || 0,
                               }
                             : undefined,
-                    },
-                ));
+                    }),
+                );
                 return responses;
             }
 
@@ -69,26 +68,28 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
                 const sessionData = rawData.sessionEnd as Record<string, unknown>;
                 const statsData = sessionData.stats as Record<string, unknown> | undefined;
                 console.log("SESSION END response", sessionData);
-                responses.push(new MultimodalLiveResponseMessage(
-                    MultimodalLiveResponseType.SESSION_END,
-                    statsData
-                        ? {
-                              messageCount: (statsData.message_count as number) || 0,
-                              audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
-                              elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
-                              totalTokenCount: (statsData.total_token_count as number) || 0,
-                              promptTokenCount: (statsData.prompt_token_count as number) || 0,
-                              responseTokenCount: (statsData.response_token_count as number) || 0,
-                          }
-                        : {
-                              messageCount: 0,
-                              audioChunksSent: 0,
-                              elapsedSeconds: 0,
-                              totalTokenCount: 0,
-                              promptTokenCount: 0,
-                              responseTokenCount: 0,
-                          },
-                ));
+                responses.push(
+                    new MultimodalLiveResponseMessage(
+                        MultimodalLiveResponseType.SESSION_END,
+                        statsData
+                            ? {
+                                  messageCount: (statsData.message_count as number) || 0,
+                                  audioChunksSent: (statsData.audio_chunks_sent as number) || 0,
+                                  elapsedSeconds: (statsData.elapsed_seconds as number) || 0,
+                                  totalTokenCount: (statsData.total_token_count as number) || 0,
+                                  promptTokenCount: (statsData.prompt_token_count as number) || 0,
+                                  responseTokenCount: (statsData.response_token_count as number) || 0,
+                              }
+                            : {
+                                  messageCount: 0,
+                                  audioChunksSent: 0,
+                                  elapsedSeconds: 0,
+                                  totalTokenCount: 0,
+                                  promptTokenCount: 0,
+                                  responseTokenCount: 0,
+                              },
+                    ),
+                );
                 return responses;
             }
 
@@ -121,60 +122,56 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
                 if (serverContent.inputTranscription) {
                     const inputTranscription = serverContent.inputTranscription as Record<string, unknown>;
                     console.log("INPUT TRANSCRIPTION:", inputTranscription);
-                    responses.push(new MultimodalLiveResponseMessage(
-                        MultimodalLiveResponseType.INPUT_TRANSCRIPTION,
-                        {
+                    responses.push(
+                        new MultimodalLiveResponseMessage(MultimodalLiveResponseType.INPUT_TRANSCRIPTION, {
                             text: (inputTranscription.text as string) || "",
                             finished: (inputTranscription.finished as boolean) || false,
-                        },
-                    ));
+                        }),
+                    );
                 }
 
                 if (serverContent.outputTranscription) {
                     const outputTranscription = serverContent.outputTranscription as Record<string, unknown>;
                     console.log("OUTPUT TRANSCRIPTION:", outputTranscription);
-                    responses.push(new MultimodalLiveResponseMessage(
-                        MultimodalLiveResponseType.OUTPUT_TRANSCRIPTION,
-                        {
+                    responses.push(
+                        new MultimodalLiveResponseMessage(MultimodalLiveResponseType.OUTPUT_TRANSCRIPTION, {
                             text: (outputTranscription.text as string) || "",
                             finished: (outputTranscription.finished as boolean) || false,
-                        },
-                    ));
+                        }),
+                    );
                 }
 
                 if (parts?.length && parts[0].text) {
                     console.log("TEXT response", parts[0].text);
-                    responses.push(new MultimodalLiveResponseMessage(
-                        MultimodalLiveResponseType.TEXT,
-                        parts[0].text as string,
-                    ));
+                    responses.push(
+                        new MultimodalLiveResponseMessage(MultimodalLiveResponseType.TEXT, parts[0].text as string),
+                    );
                 }
 
                 if (parts?.length && parts[0].inlineData) {
                     console.log("AUDIO response");
                     const inlineData = parts[0].inlineData as Record<string, unknown>;
-                    responses.push(new MultimodalLiveResponseMessage(
-                        MultimodalLiveResponseType.AUDIO,
-                        inlineData.data as string,
-                    ));
+                    responses.push(
+                        new MultimodalLiveResponseMessage(MultimodalLiveResponseType.AUDIO, inlineData.data as string),
+                    );
                 }
 
                 if (serverContent.generationComplete) {
                     console.log("GENERATION COMPLETE response");
-                    responses.push(new MultimodalLiveResponseMessage(
-                        MultimodalLiveResponseType.GENERATION_COMPLETE,
-                        "",
-                        endOfTurn,
-                    ));
+                    responses.push(
+                        new MultimodalLiveResponseMessage(
+                            MultimodalLiveResponseType.GENERATION_COMPLETE,
+                            "",
+                            endOfTurn,
+                        ),
+                    );
                 }
 
                 if (serverContent.turnComplete) {
                     console.log("TURN COMPLETE response");
-                    responses.push(new MultimodalLiveResponseMessage(
-                        MultimodalLiveResponseType.TURN_COMPLETE,
-                        "",
-                        true,
-                    ));
+                    responses.push(
+                        new MultimodalLiveResponseMessage(MultimodalLiveResponseType.TURN_COMPLETE, "", true),
+                    );
                 }
 
                 if (serverContent.interrupted) {
@@ -187,14 +184,13 @@ export class MultimodalLiveResponseMessage implements GeminiResponse {
             if (rawData?.usageMetadata) {
                 const usage = rawData.usageMetadata as Record<string, unknown>;
                 console.log("USAGE METADATA response", usage);
-                responses.push(new MultimodalLiveResponseMessage(
-                    MultimodalLiveResponseType.USAGE_METADATA,
-                    {
+                responses.push(
+                    new MultimodalLiveResponseMessage(MultimodalLiveResponseType.USAGE_METADATA, {
                         promptTokenCount: (usage.promptTokenCount as number) || 0,
                         responseTokenCount: (usage.responseTokenCount as number) || 0,
                         totalTokenCount: (usage.totalTokenCount as number) || 0,
-                    },
-                ));
+                    }),
+                );
             }
         } catch {
             console.log("Error parsing response data: ", rawData);
@@ -408,10 +404,7 @@ export class GeminiLiveAPI {
     private onReceiveMessage(messageEvent: MessageEvent): void {
         // Handle binary audio data
         if (messageEvent.data instanceof ArrayBuffer) {
-            const message = new MultimodalLiveResponseMessage(
-                MultimodalLiveResponseType.AUDIO,
-                messageEvent.data,
-            );
+            const message = new MultimodalLiveResponseMessage(MultimodalLiveResponseType.AUDIO, messageEvent.data);
             this.onReceiveResponse(message);
             return;
         }

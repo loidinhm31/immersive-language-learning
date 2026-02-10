@@ -133,9 +133,17 @@ export function IeltsPart3ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
                 overallBand,
             },
             criterionFeedback: [
-                { criterion: "Fluency & Coherence", band: fc, comment: pendingCompletion.fluency_and_coherence_comment || "" },
+                {
+                    criterion: "Fluency & Coherence",
+                    band: fc,
+                    comment: pendingCompletion.fluency_and_coherence_comment || "",
+                },
                 { criterion: "Lexical Resource", band: lr, comment: pendingCompletion.lexical_resource_comment || "" },
-                { criterion: "Grammatical Range & Accuracy", band: gra, comment: pendingCompletion.grammatical_range_and_accuracy_comment || "" },
+                {
+                    criterion: "Grammatical Range & Accuracy",
+                    band: gra,
+                    comment: pendingCompletion.grammatical_range_and_accuracy_comment || "",
+                },
                 { criterion: "Pronunciation", band: p, comment: pendingCompletion.pronunciation_comment || "" },
             ],
             overallComments: pendingCompletion.overall_comments || [],
@@ -164,7 +172,13 @@ export function IeltsPart3ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
             disconnect();
             setIsActive(false);
             onComplete({
-                bandScores: { fluencyAndCoherence: 0, lexicalResource: 0, grammaticalRangeAndAccuracy: 0, pronunciation: 0, overallBand: 0 },
+                bandScores: {
+                    fluencyAndCoherence: 0,
+                    lexicalResource: 0,
+                    grammaticalRangeAndAccuracy: 0,
+                    pronunciation: 0,
+                    overallBand: 0,
+                },
                 criterionFeedback: [],
                 overallComments: ["Assessment ended early by the candidate."],
                 topicsCovered: [],
@@ -172,7 +186,11 @@ export function IeltsPart3ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
         } else {
             setIsActive(true);
             try {
-                const systemInstructions = buildIeltsPart3Prompt(ieltsConfig.topic, fromLanguage, IELTS_PART3_SESSION_DURATION);
+                const systemInstructions = buildIeltsPart3Prompt(
+                    ieltsConfig.topic,
+                    fromLanguage,
+                    IELTS_PART3_SESSION_DURATION,
+                );
                 await connect(
                     systemInstructions,
                     true,

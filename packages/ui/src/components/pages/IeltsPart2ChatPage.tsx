@@ -36,7 +36,11 @@ function CueCardDisplay({ cueCard, compact }: { cueCard: IeltsCueCard; compact?:
             >
                 <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-text-main truncate">{cueCard.topic}</span>
-                    {expanded ? <ChevronUp size={16} className="text-text-sub shrink-0" /> : <ChevronDown size={16} className="text-text-sub shrink-0" />}
+                    {expanded ? (
+                        <ChevronUp size={16} className="text-text-sub shrink-0" />
+                    ) : (
+                        <ChevronDown size={16} className="text-text-sub shrink-0" />
+                    )}
                 </div>
                 {expanded && (
                     <div className="mt-2 pt-2 border-t border-glass-border">
@@ -185,15 +189,7 @@ export function IeltsPart2ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
         setIsActive(true);
         try {
             const systemInstructions = buildIeltsPart2Prompt(cueCard, fromLanguage, IELTS_PART2_SESSION_DURATION);
-            await connect(
-                systemInstructions,
-                true,
-                true,
-                IELTS_PART2_SESSION_DURATION,
-                voice,
-                undefined,
-                ieltsTools,
-            );
+            await connect(systemInstructions, true, true, IELTS_PART2_SESSION_DURATION, voice, undefined, ieltsTools);
             playSound(sounds.startSound);
         } catch {
             setIsActive(false);
@@ -253,9 +249,17 @@ export function IeltsPart2ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
                 overallBand,
             },
             criterionFeedback: [
-                { criterion: "Fluency & Coherence", band: fc, comment: pendingCompletion.fluency_and_coherence_comment || "" },
+                {
+                    criterion: "Fluency & Coherence",
+                    band: fc,
+                    comment: pendingCompletion.fluency_and_coherence_comment || "",
+                },
                 { criterion: "Lexical Resource", band: lr, comment: pendingCompletion.lexical_resource_comment || "" },
-                { criterion: "Grammatical Range & Accuracy", band: gra, comment: pendingCompletion.grammatical_range_and_accuracy_comment || "" },
+                {
+                    criterion: "Grammatical Range & Accuracy",
+                    band: gra,
+                    comment: pendingCompletion.grammatical_range_and_accuracy_comment || "",
+                },
                 { criterion: "Pronunciation", band: p, comment: pendingCompletion.pronunciation_comment || "" },
             ],
             overallComments: pendingCompletion.overall_comments || [],
@@ -295,7 +299,13 @@ export function IeltsPart2ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
         disconnect();
         setIsActive(false);
         onComplete({
-            bandScores: { fluencyAndCoherence: 0, lexicalResource: 0, grammaticalRangeAndAccuracy: 0, pronunciation: 0, overallBand: 0 },
+            bandScores: {
+                fluencyAndCoherence: 0,
+                lexicalResource: 0,
+                grammaticalRangeAndAccuracy: 0,
+                pronunciation: 0,
+                overallBand: 0,
+            },
             criterionFeedback: [],
             overallComments: ["Assessment ended early by the candidate."],
             topicsCovered: [],
@@ -331,8 +341,13 @@ export function IeltsPart2ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
                     <CueCardDisplay cueCard={cueCard} />
 
                     <div className="text-center text-sm text-text-sub max-w-100">
-                        <p>Read the task card carefully. When you start preparation, you will have <strong>1 minute</strong> to plan your response.</p>
-                        <p className="mt-1">Then you will speak for <strong>1-2 minutes</strong> on this topic.</p>
+                        <p>
+                            Read the task card carefully. When you start preparation, you will have{" "}
+                            <strong>1 minute</strong> to plan your response.
+                        </p>
+                        <p className="mt-1">
+                            Then you will speak for <strong>1-2 minutes</strong> on this topic.
+                        </p>
                     </div>
                 </div>
 
@@ -376,12 +391,7 @@ export function IeltsPart2ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
                 </div>
 
                 <div className="mb-16 text-center">
-                    <Button
-                        variant="secondary"
-                        size="lg"
-                        onClick={handleSkipPreparation}
-                        className="min-w-70"
-                    >
+                    <Button variant="secondary" size="lg" onClick={handleSkipPreparation} className="min-w-70">
                         <span className="font-bold">Skip — I'm Ready</span>
                     </Button>
                 </div>

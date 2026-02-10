@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { ArrowLeft, BookOpen, MessageSquare, MessagesSquare, Plus, X } from "lucide-react";
-import {
-    IELTS_PART1_TOPICS,
-    IELTS_PART2_CUE_CARDS,
-    IELTS_PART3_TOPICS,
-} from "@immersive-lang/shared";
+import { IELTS_PART1_TOPICS, IELTS_PART2_CUE_CARDS, IELTS_PART3_TOPICS } from "@immersive-lang/shared";
 import type { IeltsConfig, IeltsPart, IeltsCueCard } from "@immersive-lang/shared";
 import { Button, Card } from "@immersive-lang/ui/components/atoms";
 import { VoiceSelector } from "@immersive-lang/ui/components/organisms";
 
-const PART_INFO: Record<IeltsPart, { title: string; subtitle: string; icon: typeof BookOpen; description: string; format: string[] }> = {
+const PART_INFO: Record<
+    IeltsPart,
+    { title: string; subtitle: string; icon: typeof BookOpen; description: string; format: string[] }
+> = {
     1: {
         title: "Part 1",
         subtitle: "Interview",
         icon: MessageSquare,
-        description: "Practice with an AI examiner. You'll be asked questions about familiar topics for 4-5 minutes, then receive band scores across four official IELTS criteria.",
+        description:
+            "Practice with an AI examiner. You'll be asked questions about familiar topics for 4-5 minutes, then receive band scores across four official IELTS criteria.",
         format: [
             "Duration: 4-5 minutes",
             "The examiner will introduce themselves and ask your name",
@@ -26,7 +26,8 @@ const PART_INFO: Record<IeltsPart, { title: string; subtitle: string; icon: type
         title: "Part 2",
         subtitle: "Individual Long Turn",
         icon: BookOpen,
-        description: "You'll receive a topic card with prompts. After 1 minute of preparation, speak for 1-2 minutes on the topic, then answer 1-2 follow-up questions.",
+        description:
+            "You'll receive a topic card with prompts. After 1 minute of preparation, speak for 1-2 minutes on the topic, then answer 1-2 follow-up questions.",
         format: [
             "Duration: 3-4 minutes total",
             "1 minute preparation time to plan your response",
@@ -39,7 +40,8 @@ const PART_INFO: Record<IeltsPart, { title: string; subtitle: string; icon: type
         title: "Part 3",
         subtitle: "Two-Way Discussion",
         icon: MessagesSquare,
-        description: "Engage in a deeper discussion with the examiner on abstract topics. You'll need to analyze, compare, speculate, and justify your opinions.",
+        description:
+            "Engage in a deeper discussion with the examiner on abstract topics. You'll need to analyze, compare, speculate, and justify your opinions.",
         format: [
             "Duration: 4-5 minutes",
             "More abstract, analytical questions on the topic area",
@@ -136,9 +138,7 @@ export function IeltsSetupPage({ voice, onVoiceChange, onStart, onBack }: IeltsS
                     <partInfo.icon size={32} className="text-accent-secondary" />
                     <h1 className="text-3xl font-heading font-bold text-text-main">IELTS Speaking {partInfo.title}</h1>
                 </div>
-                <p className="text-text-sub text-lg max-w-125 mx-auto leading-relaxed">
-                    {partInfo.description}
-                </p>
+                <p className="text-text-sub text-lg max-w-125 mx-auto leading-relaxed">{partInfo.description}</p>
             </div>
 
             {/* Part Selector */}
@@ -156,7 +156,9 @@ export function IeltsSetupPage({ voice, onVoiceChange, onStart, onBack }: IeltsS
                                     : "border-glass-border bg-surface hover:border-accent-primary/40"
                             }`}
                         >
-                            <div className={`text-lg font-heading font-bold ${isSelected ? "text-accent-primary" : "text-text-main"}`}>
+                            <div
+                                className={`text-lg font-heading font-bold ${isSelected ? "text-accent-primary" : "text-text-main"}`}
+                            >
                                 {info.title}
                             </div>
                             <div className={`text-xs ${isSelected ? "text-accent-primary/80" : "text-text-sub"}`}>
@@ -240,7 +242,8 @@ export function IeltsSetupPage({ voice, onVoiceChange, onStart, onBack }: IeltsS
                             {/* Bullet Points */}
                             <div>
                                 <label className="block text-xs font-medium text-text-sub mb-1.5">
-                                    Bullet Points ({customBulletPoints.filter((bp) => bp.trim()).length} of {customBulletPoints.length})
+                                    Bullet Points ({customBulletPoints.filter((bp) => bp.trim()).length} of{" "}
+                                    {customBulletPoints.length})
                                 </label>
                                 <div className="space-y-2">
                                     {customBulletPoints.map((bp, i) => (
@@ -258,7 +261,11 @@ export function IeltsSetupPage({ voice, onVoiceChange, onStart, onBack }: IeltsS
                                             />
                                             {customBulletPoints.length > 2 && (
                                                 <button
-                                                    onClick={() => setCustomBulletPoints(customBulletPoints.filter((_, j) => j !== i))}
+                                                    onClick={() =>
+                                                        setCustomBulletPoints(
+                                                            customBulletPoints.filter((_, j) => j !== i),
+                                                        )
+                                                    }
                                                     className="p-1.5 rounded-lg bg-transparent border-none cursor-pointer text-text-sub hover:text-red-400 transition-colors"
                                                 >
                                                     <X size={16} />
@@ -304,12 +311,12 @@ export function IeltsSetupPage({ voice, onVoiceChange, onStart, onBack }: IeltsS
                                                 : "border-glass-border bg-surface hover:border-accent-primary/40"
                                         }`}
                                     >
-                                        <p className={`text-sm font-bold mb-1 ${isSelected ? "text-accent-primary" : "text-text-main"}`}>
+                                        <p
+                                            className={`text-sm font-bold mb-1 ${isSelected ? "text-accent-primary" : "text-text-main"}`}
+                                        >
                                             {card.topic}
                                         </p>
-                                        <p className="text-xs text-text-sub">
-                                            {card.bulletPoints.join(" / ")}
-                                        </p>
+                                        <p className="text-xs text-text-sub">{card.bulletPoints.join(" / ")}</p>
                                         <p className="text-xs text-accent-secondary/70 mt-1 italic">{card.followUp}</p>
                                     </button>
                                 );

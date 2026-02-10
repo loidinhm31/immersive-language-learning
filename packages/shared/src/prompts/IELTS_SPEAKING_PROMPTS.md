@@ -8,11 +8,11 @@ Documentation for all system prompts and assessment tooling used in the Immersiv
 
 The IELTS Speaking test is an 11-14 minute face-to-face assessment conducted by a trained examiner. It has three parts:
 
-| Part | Name | Duration | Format |
-|------|------|----------|--------|
-| 1 | Interview | 4-5 min | Examiner asks questions about familiar topics |
-| 2 | Individual Long Turn | 3-4 min | Candidate speaks for 1-2 min on a given topic (with 1 min preparation) |
-| 3 | Two-Way Discussion | 4-5 min | Examiner asks more abstract questions related to Part 2's topic |
+| Part | Name                 | Duration | Format                                                                 |
+| ---- | -------------------- | -------- | ---------------------------------------------------------------------- |
+| 1    | Interview            | 4-5 min  | Examiner asks questions about familiar topics                          |
+| 2    | Individual Long Turn | 3-4 min  | Candidate speaks for 1-2 min on a given topic (with 1 min preparation) |
+| 3    | Two-Way Discussion   | 4-5 min  | Examiner asks more abstract questions related to Part 2's topic        |
 
 In the app, each part is implemented as a separate page connected to the Gemini Live API for real-time voice conversation.
 
@@ -23,9 +23,11 @@ In the app, each part is implemented as a separate page connected to the Gemini 
 All three parts are assessed using the **same four criteria**, each scored on a band scale of 0-9:
 
 ### Fluency and Coherence (FC)
+
 Ability to talk with normal levels of continuity, rate, and effort; linking ideas together to form coherent speech.
 
 **Key indicators:**
+
 - Speech rate and continuity (absence of false starts, backtracking, functionless repetitions, word-searching pauses)
 - Logical sequencing of ideas
 - Clear marking of stages with discourse markers and fillers
@@ -33,14 +35,17 @@ Ability to talk with normal levels of continuity, rate, and effort; linking idea
 - Use of cohesive devices (connectors, pronouns, conjunctions)
 
 ### Lexical Resource (LR)
+
 Range of vocabulary, precision of meanings expressed, and ability to paraphrase.
 
 **Key indicators:**
+
 - Variety of words used
 - Adequacy and appropriacy of word choice (referential meaning, style, collocation, attitude)
 - Ability to paraphrase when lacking a specific word
 
 ### Grammatical Range and Accuracy (GRA)
+
 Accurate and appropriate use of syntactic forms and range of grammatical resources.
 
 **Key indicators of range:** sentence length, subordinate clauses, verb phrase complexity (aspect, modality, passive), pre/post-modification, sentence structure variety.
@@ -48,9 +53,11 @@ Accurate and appropriate use of syntactic forms and range of grammatical resourc
 **Key indicators of accuracy:** error density, communicative effect of errors.
 
 ### Pronunciation (P)
+
 Accurate and sustained use of phonological features to convey meaningful messages.
 
 **Key indicators:**
+
 - Chunking within sentences
 - Rhythm, stress-timing, linking, elision
 - Emphatic and contrastive stress and intonation
@@ -61,17 +68,17 @@ Accurate and sustained use of phonological features to convey meaningful message
 
 ## 3. Band Descriptors Summary
 
-| Band | Label | FC | LR | GRA | P |
-|------|-------|----|----|-----|---|
-| **9** | Expert | Fluent, only rare content-related hesitation. Fully coherent and appropriate. | Total flexibility, precise use. Sustained accurate & idiomatic language. | Precise and accurate at all times (apart from native-like 'mistakes'). | Full range of phonological features. Effortlessly understood. |
-| **8** | Very Good | Fluent, occasional repetition/self-correction. Coherent and relevant. | Wide resource, readily flexible. Skilful use of less common/idiomatic items. | Wide range, flexibly used. Majority error-free. | Wide range of features. Easily understood throughout. |
-| **7** | Good | Long turns without noticeable effort. Some hesitation mid-sentence. Flexible discourse markers. | Flexible discussion of variety of topics. Some less common/idiomatic items. | Range of structures flexibly used. Error-free sentences frequent. | Displays features of band 6 and some of band 8. |
-| **6** | Competent | Willingness to produce long turns. Coherence lost at times. Range of discourse markers. | Sufficient for lengthy discussion. May be inappropriate but meaning clear. | Mix of short/complex forms. Errors in complex structures rarely impede communication. | Variable control. Generally understood without much effort. |
-| **5** | Modest | Can keep going but relies on repetition/self-correction/slow speech. | Sufficient for familiar/unfamiliar topics but limited flexibility. | Basic forms fairly well controlled. Complex structures attempted but limited. | Displays features of band 4 and some of band 6. |
-| **4** | Limited | Noticeable pauses. Slow with frequent repetition. Simple sentence linking. | Basic meaning only on unfamiliar topics. Frequent errors in word choice. | Basic forms and short utterances. Turns short, structures repetitive. | Limited range. Understanding requires some effort. |
-| **3** | Extremely Limited | Frequent long pauses. Limited linking. Cannot convey basic message. | Limited to simple vocabulary for personal information. | Basic forms attempted but numerous errors. | Some features of band 2 and some of band 4. |
-| **2** | Intermittent | Lengthy pauses before nearly every word. | Very limited. Isolated words or memorised utterances. | No evidence of basic sentence forms. | Few acceptable features. Often unintelligible. |
-| **1** | Non-user | Totally incoherent. | No resource bar isolated words. | No rateable language unless memorised. | Occasional recognisable words/phonemes. Unintelligible. |
+| Band  | Label             | FC                                                                                              | LR                                                                           | GRA                                                                                   | P                                                             |
+| ----- | ----------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **9** | Expert            | Fluent, only rare content-related hesitation. Fully coherent and appropriate.                   | Total flexibility, precise use. Sustained accurate & idiomatic language.     | Precise and accurate at all times (apart from native-like 'mistakes').                | Full range of phonological features. Effortlessly understood. |
+| **8** | Very Good         | Fluent, occasional repetition/self-correction. Coherent and relevant.                           | Wide resource, readily flexible. Skilful use of less common/idiomatic items. | Wide range, flexibly used. Majority error-free.                                       | Wide range of features. Easily understood throughout.         |
+| **7** | Good              | Long turns without noticeable effort. Some hesitation mid-sentence. Flexible discourse markers. | Flexible discussion of variety of topics. Some less common/idiomatic items.  | Range of structures flexibly used. Error-free sentences frequent.                     | Displays features of band 6 and some of band 8.               |
+| **6** | Competent         | Willingness to produce long turns. Coherence lost at times. Range of discourse markers.         | Sufficient for lengthy discussion. May be inappropriate but meaning clear.   | Mix of short/complex forms. Errors in complex structures rarely impede communication. | Variable control. Generally understood without much effort.   |
+| **5** | Modest            | Can keep going but relies on repetition/self-correction/slow speech.                            | Sufficient for familiar/unfamiliar topics but limited flexibility.           | Basic forms fairly well controlled. Complex structures attempted but limited.         | Displays features of band 4 and some of band 6.               |
+| **4** | Limited           | Noticeable pauses. Slow with frequent repetition. Simple sentence linking.                      | Basic meaning only on unfamiliar topics. Frequent errors in word choice.     | Basic forms and short utterances. Turns short, structures repetitive.                 | Limited range. Understanding requires some effort.            |
+| **3** | Extremely Limited | Frequent long pauses. Limited linking. Cannot convey basic message.                             | Limited to simple vocabulary for personal information.                       | Basic forms attempted but numerous errors.                                            | Some features of band 2 and some of band 4.                   |
+| **2** | Intermittent      | Lengthy pauses before nearly every word.                                                        | Very limited. Isolated words or memorised utterances.                        | No evidence of basic sentence forms.                                                  | Few acceptable features. Often unintelligible.                |
+| **1** | Non-user          | Totally incoherent.                                                                             | No resource bar isolated words.                                              | No rateable language unless memorised.                                                | Occasional recognisable words/phonemes. Unintelligible.       |
 
 ---
 
@@ -80,6 +87,7 @@ Accurate and sustained use of phonological features to convey meaningful message
 **File:** `packages/shared/src/prompts/ielts.ts` > `buildIeltsPart1Prompt(topic, fromLanguage)`
 
 **Parameters:**
+
 - `topic` (string): The primary topic area (e.g., "Work & Studies", "Hometown")
 - `fromLanguage` (string): Candidate's first language
 
@@ -91,15 +99,15 @@ The Part 1 prompt instructs the AI examiner to follow the standard IELTS Part 1 
 
 1. **Introduction (30 seconds):** Introduce as examiner, ask candidate's name
 2. **Topic Questions (3.5-4 minutes):** Ask questions about 2-3 familiar topic areas
-   - Start with simple, factual questions
-   - Progress to opinion-based questions
-   - 3-4 questions per topic area
-   - Natural transition to secondary topics if time allows
+    - Start with simple, factual questions
+    - Progress to opinion-based questions
+    - 3-4 questions per topic area
+    - Natural transition to secondary topics if time allows
 3. **Question Style:**
-   - Clear, direct questions with natural follow-ups
-   - No correction, vocabulary help, or performance feedback
-   - Prompt for elaboration on short answers
-   - Gentle redirection if off-topic
+    - Clear, direct questions with natural follow-ups
+    - No correction, vocabulary help, or performance feedback
+    - Prompt for elaboration on short answers
+    - Gentle redirection if off-topic
 
 ### Design Choices
 
@@ -115,6 +123,7 @@ The Part 1 prompt instructs the AI examiner to follow the standard IELTS Part 1 
 **File:** `packages/shared/src/prompts/ielts.ts` > `buildIeltsPart2Prompt(cueCard, fromLanguage)`
 
 **Parameters:**
+
 - `cueCard` (IeltsCueCard): Contains `topic`, `bulletPoints[]`, and `followUp`
 - `fromLanguage` (string): Candidate's first language
 
@@ -134,14 +143,15 @@ The preparation phase is handled entirely client-side. The AI prompt is informed
 
 1. **Begin Speaking:** Tell candidate preparation time is up, read topic aloud, invite them to begin
 2. **Candidate's Long Turn (1-2 min):**
-   - Do NOT interrupt the monologue
-   - Prompt if they stop before 1 minute
-   - Signal stop at approximately 2 minutes
+    - Do NOT interrupt the monologue
+    - Prompt if they stop before 1 minute
+    - Signal stop at approximately 2 minutes
 3. **Rounding-off Questions (30 sec):** 1-2 brief follow-up questions
 
 ### Part 2 Specific Assessment Focus
 
 The prompt adds specific assessment guidance beyond the standard criteria:
+
 - Ability to organize and sustain a long turn (not just short answers)
 - Use of discourse markers to structure the monologue
 - Topic development with relevant detail and examples
@@ -162,6 +172,7 @@ The prompt adds specific assessment guidance beyond the standard criteria:
 **File:** `packages/shared/src/prompts/ielts.ts` > `buildIeltsPart3Prompt(topic, fromLanguage)`
 
 **Parameters:**
+
 - `topic` (string): Abstract discussion theme (e.g., "Education & Learning", "Technology & Society")
 - `fromLanguage` (string): Candidate's first language
 
@@ -176,14 +187,14 @@ The prompt adds specific assessment guidance beyond the standard criteria:
 
 The prompt specifies six question types to ensure variety:
 
-| Type | Example Pattern |
-|------|----------------|
-| Analysis | "Why do you think...?", "What are the reasons for...?" |
-| Comparison | "How does X compare to Y?", "What are the differences between...?" |
-| Speculation | "What might happen if...?", "How do you think X will change in the future?" |
-| Evaluation | "To what extent do you agree that...?", "What are the advantages and disadvantages of...?" |
-| Hypothetical | "If you could change one thing about X, what would it be?" |
-| Opinion | "Some people believe that... What is your view?" |
+| Type         | Example Pattern                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| Analysis     | "Why do you think...?", "What are the reasons for...?"                                     |
+| Comparison   | "How does X compare to Y?", "What are the differences between...?"                         |
+| Speculation  | "What might happen if...?", "How do you think X will change in the future?"                |
+| Evaluation   | "To what extent do you agree that...?", "What are the advantages and disadvantages of...?" |
+| Hypothetical | "If you could change one thing about X, what would it be?"                                 |
+| Opinion      | "Some people believe that... What is your view?"                                           |
 
 ### Part 3 Specific Assessment Focus
 
@@ -295,10 +306,10 @@ These notes are appended to every prompt to ensure consistent, realistic scoring
 
 ### Part-Specific Scoring Guidance
 
-| Part | Additional Focus Areas |
-|------|----------------------|
-| Part 1 | Ability to answer familiar topic questions with appropriate detail; natural conversation flow |
-| Part 2 | Sustained monologue organization; discourse markers for structuring; addressing all cue card bullet points; topic development with relevant detail |
+| Part   | Additional Focus Areas                                                                                                                                     |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Part 1 | Ability to answer familiar topic questions with appropriate detail; natural conversation flow                                                              |
+| Part 2 | Sustained monologue organization; discourse markers for structuring; addressing all cue card bullet points; topic development with relevant detail         |
 | Part 3 | Abstract reasoning; expressing and justifying opinions; speculative/hypothetical language; logical argument development; considering multiple perspectives |
 
 ---
@@ -309,26 +320,26 @@ These notes are appended to every prompt to ensure consistent, realistic scoring
 
 **File:** `packages/shared/src/types/ielts.ts`
 
-| Constant | Count | Usage |
-|----------|-------|-------|
-| `IELTS_PART1_TOPICS` | 20 | Familiar topic chips for Part 1 setup (Work & Studies, Hometown, Family, etc.) |
-| `IELTS_PART2_CUE_CARDS` | 15 | Predefined cue cards for Part 2 (Describe a book, a place, a person, etc.) |
-| `IELTS_PART3_TOPICS` | 18 | Abstract discussion themes for Part 3 (Education, Technology & Society, Environment, etc.) |
+| Constant                | Count | Usage                                                                                      |
+| ----------------------- | ----- | ------------------------------------------------------------------------------------------ |
+| `IELTS_PART1_TOPICS`    | 20    | Familiar topic chips for Part 1 setup (Work & Studies, Hometown, Family, etc.)             |
+| `IELTS_PART2_CUE_CARDS` | 15    | Predefined cue cards for Part 2 (Describe a book, a place, a person, etc.)                 |
+| `IELTS_PART3_TOPICS`    | 18    | Abstract discussion themes for Part 3 (Education, Technology & Society, Environment, etc.) |
 
 ### Band Labels
 
-| Band | Label |
-|------|-------|
-| 9 | Expert |
-| 8 | Very Good |
-| 7 | Good |
-| 6 | Competent |
-| 5 | Modest |
-| 4 | Limited |
-| 3 | Extremely Limited |
-| 2 | Intermittent |
-| 1 | Non-user |
-| 0 | Did not attempt |
+| Band | Label             |
+| ---- | ----------------- |
+| 9    | Expert            |
+| 8    | Very Good         |
+| 7    | Good              |
+| 6    | Competent         |
+| 5    | Modest            |
+| 4    | Limited           |
+| 3    | Extremely Limited |
+| 2    | Intermittent      |
+| 1    | Non-user          |
+| 0    | Did not attempt   |
 
 ---
 

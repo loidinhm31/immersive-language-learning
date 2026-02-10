@@ -110,13 +110,19 @@ When approximately ${wrapUpMin}-${durationMin} minutes have elapsed, or when you
 1. Thank the candidate for the interview
 2. THEN call the "complete_ielts_assessment" tool with detailed scoring
 
+IMPORTANT: When calling the assessment tool, do NOT speak or generate audio at the same time. Stop speaking completely, then call the tool immediately.
+
 SCORING INSTRUCTIONS - Use the official IELTS Speaking Band Descriptors below:
 ${IELTS_BAND_DESCRIPTORS_PROMPT}
 ${IELTS_SCORING_NOTES}
 `;
 }
 
-export function buildIeltsPart2Prompt(cueCard: IeltsCueCard, fromLanguage: string, sessionDurationSeconds?: number): string {
+export function buildIeltsPart2Prompt(
+    cueCard: IeltsCueCard,
+    fromLanguage: string,
+    sessionDurationSeconds?: number,
+): string {
     const bulletList = cueCard.bulletPoints.map((bp) => `   - ${bp}`).join("\n");
     const durationMin = sessionDurationSeconds ? Math.floor(sessionDurationSeconds / 60) : 4;
     const wrapUpMin = Math.max(1, durationMin - 1);
@@ -174,6 +180,8 @@ ASSESSMENT COMPLETION:
 After the rounding-off questions, or when approaching the ${wrapUpMin}-minute mark:
 1. Thank the candidate
 2. THEN call the "complete_ielts_assessment" tool with detailed scoring
+
+IMPORTANT: When calling the assessment tool, do NOT speak or generate audio at the same time. Stop speaking completely, then call the tool immediately.
 
 SCORING INSTRUCTIONS - Use the official IELTS Speaking Band Descriptors below:
 ${IELTS_BAND_DESCRIPTORS_PROMPT}
@@ -237,6 +245,8 @@ ASSESSMENT COMPLETION:
 When approximately ${wrapUpMin}-${durationMin} minutes have elapsed:
 1. Thank the candidate for the discussion
 2. THEN call the "complete_ielts_assessment" tool with detailed scoring
+
+IMPORTANT: When calling the assessment tool, do NOT speak or generate audio at the same time. Stop speaking completely, then call the tool immediately.
 
 SCORING INSTRUCTIONS - Use the official IELTS Speaking Band Descriptors below:
 ${IELTS_BAND_DESCRIPTORS_PROMPT}

@@ -45,7 +45,10 @@ function CriterionCard({ feedback }: { feedback: IeltsCriterionFeedback }) {
                     <span className="text-2xl font-heading font-bold" style={{ color }}>
                         {feedback.band}
                     </span>
-                    <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ color, background: `${color}15` }}>
+                    <span
+                        className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                        style={{ color, background: `${color}15` }}
+                    >
                         {label}
                     </span>
                 </div>
@@ -71,14 +74,19 @@ export interface IeltsSummaryPageProps {
     onBackToHistory?: () => void;
 }
 
-export function IeltsSummaryPage({ result, part = 1, topic, cueCard, onBackToMissions, onBackToHistory }: IeltsSummaryPageProps) {
+export function IeltsSummaryPage({
+    result,
+    part = 1,
+    topic,
+    cueCard,
+    onBackToMissions,
+    onBackToHistory,
+}: IeltsSummaryPageProps) {
     const isIncomplete = result.bandScores.overallBand === 0 && result.criterionFeedback.length === 0;
 
     return (
         <div className="max-w-[560px] mx-auto px-6 py-8 text-center min-h-screen flex flex-col">
-            <h2 className="mt-8 font-heading text-accent-secondary">
-                IELTS Speaking Part {part} Results
-            </h2>
+            <h2 className="mt-8 font-heading text-accent-secondary">IELTS Speaking Part {part} Results</h2>
 
             {topic && (
                 <p className="text-text-sub text-sm mt-1">
@@ -88,7 +96,9 @@ export function IeltsSummaryPage({ result, part = 1, topic, cueCard, onBackToMis
 
             {cueCard && part === 2 && (
                 <div className="mt-3 mx-auto max-w-100 text-left bg-surface border border-glass-border rounded-xl p-4">
-                    <div className="text-xs font-bold text-accent-secondary uppercase tracking-wider mb-1">Task Card</div>
+                    <div className="text-xs font-bold text-accent-secondary uppercase tracking-wider mb-1">
+                        Task Card
+                    </div>
                     <p className="text-sm font-bold text-text-main mb-1">{cueCard.topic}</p>
                     <ul className="list-disc pl-4 text-xs text-text-sub space-y-0.5">
                         {cueCard.bulletPoints.map((bp, i) => (
@@ -101,9 +111,7 @@ export function IeltsSummaryPage({ result, part = 1, topic, cueCard, onBackToMis
 
             {isIncomplete ? (
                 <div className="my-16 opacity-70">
-                    <p className="mt-4 text-lg text-text-sub">
-                        Assessment ended early. No scores were awarded.
-                    </p>
+                    <p className="mt-4 text-lg text-text-sub">Assessment ended early. No scores were awarded.</p>
                 </div>
             ) : (
                 <>
