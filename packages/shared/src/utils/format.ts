@@ -7,6 +7,7 @@ export function formatLanguage(flag: string, name: string): string {
 
 /**
  * Get difficulty badge color
+ * @deprecated Use Badge component with difficulty prop instead
  */
 export function getDifficultyColor(difficulty: string): string {
     switch (difficulty) {

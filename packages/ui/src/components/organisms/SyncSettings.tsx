@@ -5,8 +5,7 @@ import { useSync } from "@immersive-lang/ui/hooks";
 import { useAuth } from "@immersive-lang/ui/hooks";
 import { isTauri } from "@immersive-lang/ui/adapters/shared";
 
-interface SyncSettingsProps {
-}
+interface SyncSettingsProps {}
 
 export const SyncSettings = () => {
     const { status, lastResult, isSyncing, syncProgress, syncNow, configure } = useSync();

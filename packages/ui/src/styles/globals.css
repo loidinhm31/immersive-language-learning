@@ -91,6 +91,22 @@
   --animate-fade-in-up: fadeInUp 0.6s ease-out forwards;
   --animate-float: floatUp 15s linear infinite;
   --animate-pulse-glow: pulseGlow 2s ease-in-out infinite;
+
+  /* Difficulty levels mapped to theme colors */
+  --color-difficulty-easy: var(--color-success);
+  --color-difficulty-medium: var(--color-warning);
+  --color-difficulty-hard: var(--color-secondary-400);
+  --color-difficulty-expert: var(--color-danger);
+
+  /* Semantic color utilities (for Tailwind class generation) */
+  /* These provide defaults; @layer base overrides them for light/dark modes */
+  --color-text-main: var(--color-text-primary);
+  --color-text-sub: var(--color-text-secondary);
+  --color-bg: var(--color-bg-dark);
+  --color-surface: var(--color-surface-dark);
+  --color-surface-solid: var(--color-surface-solid-dark);
+  --color-accent-primary: var(--color-primary-400);
+  --color-accent-secondary: var(--color-secondary-400);
 }
 
 @layer base {

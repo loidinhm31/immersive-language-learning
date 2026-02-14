@@ -123,7 +123,7 @@ export function LiveTranscript({ className }: LiveTranscriptProps) {
                             exit={{ opacity: 0 }}
                             className={cn(
                                 "max-w-[80%] px-4 py-2 text-lg leading-relaxed break-words",
-                                bubble.role === "model" && "self-start text-left text-gray-800",
+                                bubble.role === "model" && "self-start text-left text-text-main",
                                 bubble.role === "user" && "self-end text-right text-accent-primary font-medium",
                             )}
                         >
