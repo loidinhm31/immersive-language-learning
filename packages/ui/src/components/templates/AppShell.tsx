@@ -29,8 +29,14 @@ const SettingsPage = lazy(() =>
 const IeltsSetupPage = lazy(() =>
     import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsSetupPage })),
 );
-const IeltsChatPage = lazy(() =>
-    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsChatPage })),
+const IeltsPart1ChatPage = lazy(() =>
+    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsPart1ChatPage })),
+);
+const IeltsPart2ChatPage = lazy(() =>
+    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsPart2ChatPage })),
+);
+const IeltsPart3ChatPage = lazy(() =>
+    import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsPart3ChatPage })),
 );
 const IeltsSummaryPage = lazy(() =>
     import("@immersive-lang/ui/components/pages").then((m) => ({ default: m.IeltsSummaryPage })),
@@ -393,8 +399,16 @@ function IeltsChatPageWrapper() {
 
     if (!state.ieltsConfig) return null;
 
+    // Render the appropriate chat page based on selected part
+    const ChatComponent =
+        state.ieltsConfig.part === 1
+            ? IeltsPart1ChatPage
+            : state.ieltsConfig.part === 2
+              ? IeltsPart2ChatPage
+              : IeltsPart3ChatPage;
+
     return (
-        <IeltsChatPage
+        <ChatComponent
             ieltsConfig={state.ieltsConfig}
             fromLanguage={state.selectedFromLanguage}
             voice={state.selectedVoice}

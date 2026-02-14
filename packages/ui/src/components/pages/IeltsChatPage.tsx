@@ -496,6 +496,3 @@ export function IeltsPart1ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
         </div>
     );
 }
-
-/** @deprecated Use IeltsPart1ChatPage instead */
-export const IeltsChatPage = IeltsPart1ChatPage;

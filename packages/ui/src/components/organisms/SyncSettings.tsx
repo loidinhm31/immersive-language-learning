@@ -6,13 +6,9 @@ import { useAuth } from "@immersive-lang/ui/hooks";
 import { isTauri } from "@immersive-lang/ui/adapters/shared";
 
 interface SyncSettingsProps {
-    /**
-     * Whether running in embedded mode (hides server configuration)
-     */
-    embedded?: boolean;
 }
 
-export const SyncSettings = ({ embedded = false }: SyncSettingsProps) => {
+export const SyncSettings = () => {
     const { status, lastResult, isSyncing, syncProgress, syncNow, configure } = useSync();
     const { isAuthenticated } = useAuth();
     const [serverUrl, setServerUrl] = useState("");

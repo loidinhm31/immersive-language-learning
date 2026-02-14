@@ -7,10 +7,6 @@ import { LogIn, LogOut, Moon, Sun, Monitor } from "lucide-react";
 
 export interface SettingsPageProps {
     onLogout?: () => void;
-    /**
-     * Whether running in embedded mode (hides server configuration)
-     */
-    embedded?: boolean;
 }
 
 const THEME_OPTIONS: { value: Theme; label: string; icon: React.ReactNode }[] = [
@@ -19,7 +15,7 @@ const THEME_OPTIONS: { value: Theme; label: string; icon: React.ReactNode }[] = 
     { value: "system", label: "System", icon: <Monitor className="w-5 h-5" /> },
 ];
 
-export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout, embedded = false }) => {
+export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
     const { nav } = useNav();
     const { isAuthenticated, status, logout } = useAuth();
     const { theme, setTheme } = useTheme();
@@ -112,7 +108,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout, embedded =
                 </div>
             </Card>
             <GeminiSettings />
-            <SyncSettings embedded={embedded} />
+            <SyncSettings />
         </div>
     );
 };

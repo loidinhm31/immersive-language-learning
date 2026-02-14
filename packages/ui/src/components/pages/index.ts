@@ -6,7 +6,7 @@ export { ChatPage } from "./ChatPage";
 export { SummaryPage } from "./SummaryPage";
 export { HistoryPage } from "./HistoryPage";
 export { IeltsSetupPage } from "./IeltsSetupPage";
-export { IeltsChatPage, IeltsPart1ChatPage } from "./IeltsChatPage";
+export { IeltsPart1ChatPage } from "./IeltsChatPage";
 export { IeltsPart2ChatPage } from "./IeltsPart2ChatPage";
 export { IeltsPart3ChatPage } from "./IeltsPart3ChatPage";
 export { IeltsSummaryPage } from "./IeltsSummaryPage";
