@@ -1,4 +1,4 @@
-import type { SyncResult, SyncStatus, SyncConfig } from "@immersive-lang/shared";
+import type { SyncResult, SyncStatus, SyncProgress } from "@immersive-lang/shared";
 
 /**
  * Sync service interface for data synchronization
@@ -8,15 +8,16 @@ import type { SyncResult, SyncStatus, SyncConfig } from "@immersive-lang/shared"
  */
 export interface ISyncService {
     /**
-     * Configure sync settings (server URL, app ID, API key)
-     */
-    configure(config: SyncConfig): Promise<void>;
-
-    /**
      * Trigger a sync operation
      * Pushes local changes and pulls remote changes
      */
     syncNow(): Promise<SyncResult>;
+
+    /**
+     * Trigger a sync operation with progress updates
+     * Handles hasMore pagination automatically
+     */
+    syncWithProgress?(onProgress: (progress: SyncProgress) => void): Promise<SyncResult>;
 
     /**
      * Get current sync status

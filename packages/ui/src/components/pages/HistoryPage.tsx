@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { History, Trash2, ArrowLeft } from "lucide-react";
 import type { SessionHistoryEntry } from "@immersive-lang/shared";
 import { Button } from "@immersive-lang/ui/components/atoms";
 import { SessionCard } from "@immersive-lang/ui/components/molecules";
-import { ServiceFactory } from "@immersive-lang/ui/adapters";
+import { useSessionHistory } from "@immersive-lang/ui/hooks";
 
 export interface HistoryPageProps {
     onBack: () => void;
@@ -11,50 +11,22 @@ export interface HistoryPageProps {
 }
 
 export function HistoryPage({ onBack, onViewSession }: HistoryPageProps) {
-    const [sessions, setSessions] = useState<SessionHistoryEntry[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const loadSessions = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const historyService = ServiceFactory.getSessionHistoryService();
-            const entries = await historyService.getAll();
-            setSessions(entries);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to load history");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const { sessions, loading, error, loadSessions, deleteSession, clearHistory } = useSessionHistory();
 
     useEffect(() => {
         loadSessions();
     }, [loadSessions]);
 
-    const handleDelete = useCallback(async (id: string) => {
-        try {
-            const historyService = ServiceFactory.getSessionHistoryService();
-            await historyService.delete(id);
-            setSessions((prev) => prev.filter((s) => s.id !== id));
-        } catch (err) {
-            console.error("Failed to delete session:", err);
-        }
-    }, []);
+    const handleDelete = async (id: string) => {
+        await deleteSession(id);
+    };
 
-    const handleClearAll = useCallback(async () => {
+    const handleClearAll = async () => {
         if (!confirm("Are you sure you want to clear all session history?")) {
             return;
         }
-        try {
-            const historyService = ServiceFactory.getSessionHistoryService();
-            await historyService.clear();
-            setSessions([]);
-        } catch (err) {
-            console.error("Failed to clear history:", err);
-        }
-    }, []);
+        await clearHistory();
+    };
 
     return (
         <div className="max-w-[640px] mx-auto px-6 py-8 min-h-screen flex flex-col">
@@ -76,7 +48,7 @@ export function HistoryPage({ onBack, onViewSession }: HistoryPageProps) {
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
                         <p className="text-destructive mb-4">{error}</p>
-                        <Button variant="secondary" onClick={loadSessions}>
+                        <Button variant="secondary" onClick={() => loadSessions()}>
                             Try Again
                         </Button>
                     </div>

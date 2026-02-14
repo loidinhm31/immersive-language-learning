@@ -137,7 +137,7 @@ export function SplashPage({ onStart }: SplashPageProps) {
                             rel="noopener noreferrer"
                             className="text-accent-primary font-bold border-b-2 border-transparent hover:border-accent-primary transition-all"
                         >
-                            Gemini Live API on Vertex AI
+                            Gemini Live API
                         </a>
                     </p>
                 </motion.div>

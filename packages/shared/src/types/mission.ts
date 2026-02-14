@@ -106,9 +106,9 @@ export interface SessionHistoryEntry {
     completedAt: number; // Unix timestamp
     ieltsResult?: IeltsAssessmentResult;
     ieltsConfig?: IeltsConfig;
-    // Sync fields for SQLite
-    sync_version?: number;
-    synced_at?: number | null;
+    // Sync fields (camelCase to match app conventions)
+    syncVersion?: number;
+    syncedAt?: number | null;
     deleted?: boolean;
-    deleted_at?: number | null;
+    deletedAt?: number | null;
 }

@@ -1,21 +1,23 @@
 import Dexie, { type EntityTable, type Table } from "dexie";
 
 /**
- * Database schema for session history (snake_case to match server)
+ * Database schema for session history (camelCase to match app conventions)
  */
 export interface DbSessionHistory {
     id: string;
-    mission_json: string | null;
+    missionJson: string | null;
     language: string;
-    from_language: string;
+    fromLanguage: string;
     mode: string;
     voice: string;
-    result_json: string;
-    completed_at: number;
-    sync_version: number;
-    synced_at: number | null;
+    resultJson: string;
+    completedAt: number;
+    ieltsResultJson?: string | null;
+    ieltsConfigJson?: string | null;
+    syncVersion: number;
+    syncedAt: number | null;
     deleted: number; // 0 or 1
-    deleted_at: number | null;
+    deletedAt: number | null;
 }
 
 /**
@@ -60,11 +62,65 @@ class ImmersiveLangDatabase extends Dexie {
     constructor() {
         super("immergo_session_history");
 
+        // Version 1: Original snake_case schema
         this.version(1).stores({
             sessions: "id, completed_at, language, from_language, mode, deleted, sync_version, synced_at",
             _syncMeta: "key",
             _pendingChanges: "++id, tableName, rowId",
         });
+
+        // Version 2: Migrate to camelCase schema
+        this.version(2)
+            .stores({
+                sessions: "id, completedAt, language, fromLanguage, mode, deleted, syncVersion, syncedAt",
+                _syncMeta: "key",
+                _pendingChanges: "++id, tableName, rowId",
+            })
+            .upgrade((tx) => {
+                // Migrate existing records from snake_case to camelCase
+                return tx
+                    .table("sessions")
+                    .toCollection()
+                    .modify((session: Record<string, unknown>) => {
+                        // Map snake_case fields to camelCase
+                        if ("mission_json" in session) {
+                            session.missionJson = session.mission_json;
+                            delete session.mission_json;
+                        }
+                        if ("from_language" in session) {
+                            session.fromLanguage = session.from_language;
+                            delete session.from_language;
+                        }
+                        if ("result_json" in session) {
+                            session.resultJson = session.result_json;
+                            delete session.result_json;
+                        }
+                        if ("completed_at" in session) {
+                            session.completedAt = session.completed_at;
+                            delete session.completed_at;
+                        }
+                        if ("ielts_result_json" in session) {
+                            session.ieltsResultJson = session.ielts_result_json;
+                            delete session.ielts_result_json;
+                        }
+                        if ("ielts_config_json" in session) {
+                            session.ieltsConfigJson = session.ielts_config_json;
+                            delete session.ielts_config_json;
+                        }
+                        if ("sync_version" in session) {
+                            session.syncVersion = session.sync_version;
+                            delete session.sync_version;
+                        }
+                        if ("synced_at" in session) {
+                            session.syncedAt = session.synced_at;
+                            delete session.synced_at;
+                        }
+                        if ("deleted_at" in session) {
+                            session.deletedAt = session.deleted_at;
+                            delete session.deleted_at;
+                        }
+                    });
+            });
     }
 }
 

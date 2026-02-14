@@ -66,20 +66,14 @@
   --color-warning: #ffb74d;
   --color-info: #64b5f6;
 
-  /* Glass Effects */
-  --color-glass-border: rgba(255, 255, 255, 0.08);
+  /* Glass Effects - in @theme for utility class generation */
+  --glass-bg: rgba(22, 24, 34, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --bg-gradient: linear-gradient(to bottom right, #0a0b10, #161822, #0a0b10);
 
-  /* ============================================
-   * Legacy Color Aliases (for component compatibility)
-   * These generate utility classes like bg-bg, bg-surface, etc.
-   * ============================================ */
-  --color-bg: #0a0b10;
-  --color-surface: rgba(22, 24, 34, 0.6);
-  --color-surface-solid: #161822;
-  --color-text-main: #eaddcf;
-  --color-text-sub: #949ba4;
-  --color-accent-primary: #a3b18a;
-  --color-accent-secondary: #d4a373;
+  /* Border colors */
+  --color-border-light: rgba(255, 255, 255, 0.08);
+  --color-border-dark: rgba(0, 0, 0, 0.08);
 
   /* Font Family */
   --font-family-heading: 'Libre Baskerville', serif;
@@ -101,7 +95,7 @@
 
 @layer base {
   :root {
-    /* Default to dark theme */
+    /* Dark mode defaults (immersive-lang default) */
     --color-bg: var(--color-bg-dark);
     --color-surface: var(--color-surface-dark);
     --color-surface-solid: var(--color-surface-solid-dark);
@@ -127,17 +121,41 @@
     --radius-full: 9999px;
   }
 
-  .light-mode {
+  /* Dark theme (explicit) - matches :root defaults */
+  .dark,
+  [data-theme="dark"] {
+    --color-bg: var(--color-bg-dark);
+    --color-surface: var(--color-surface-dark);
+    --color-surface-solid: var(--color-surface-solid-dark);
+    --color-text-main: var(--color-text-primary);
+    --color-text-sub: var(--color-text-secondary);
+    --color-accent-primary: var(--color-primary-400);
+    --color-accent-secondary: var(--color-secondary-400);
+    --color-accent-glow: rgba(163, 177, 138, 0.15);
+    --glass-bg: rgba(22, 24, 34, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --bg-gradient: linear-gradient(to bottom right, #0a0b10, #161822, #0a0b10);
+    --color-border-light: rgba(255, 255, 255, 0.08);
+    --texture-opacity: 0.03;
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Light theme */
+  .light-mode,
+  [data-theme="light"] {
     --color-bg: var(--color-bg-light);
     --color-surface: var(--color-surface-light);
     --color-surface-solid: var(--color-surface-solid-light);
     --color-text-main: #2c2420;
     --color-text-sub: #5e5048;
     --color-accent-primary: var(--color-primary-600);
-    --color-accent-secondary: #000000;
+    --color-accent-secondary: var(--color-secondary-600);
     --color-accent-glow: rgba(92, 107, 72, 0.2);
-    --glass-bg: var(--color-surface-light);
+    --glass-bg: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(0, 0, 0, 0.08);
+    --bg-gradient: linear-gradient(to bottom right, #f5f2eb, #ebe6dc, #f5f2eb);
+    --color-border-light: rgba(0, 0, 0, 0.08);
     --texture-opacity: 0.15;
     --shadow-sm: 0 4px 6px -1px rgba(44, 36, 32, 0.1);
     --shadow-md: 0 10px 30px -5px rgba(44, 36, 32, 0.12);

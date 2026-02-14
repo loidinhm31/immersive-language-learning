@@ -2,78 +2,49 @@
  * Web Session History Adapter
  *
  * IndexedDB-based implementation of ISessionHistoryService using Dexie.
+ * Uses the shared database from database.ts with camelCase field names.
  */
 
-import Dexie, { type Table } from "dexie";
 import type { SessionHistoryEntry } from "@immersive-lang/shared";
 import type { ISessionHistoryService, SessionHistoryFilter } from "@immersive-lang/ui/adapters/factory/interfaces";
-
-interface DbSessionHistory {
-    id: string;
-    mission_json: string | null;
-    language: string;
-    from_language: string;
-    mode: string;
-    voice: string;
-    result_json: string;
-    completed_at: number;
-    ielts_result_json?: string | null;
-    ielts_config_json?: string | null;
-    sync_version: number;
-    synced_at: number | null;
-    deleted: number; // 0 or 1
-    deleted_at: number | null;
-}
-
-class SessionHistoryDatabase extends Dexie {
-    sessions!: Table<DbSessionHistory>;
-
-    constructor() {
-        super("ImmergoDB");
-        this.version(1).stores({
-            sessions: "id, completed_at, language, from_language, mode, deleted, sync_version, synced_at",
-        });
-    }
-}
-
-const db = new SessionHistoryDatabase();
+import { db, type DbSessionHistory } from "./database";
 
 export class WebSessionHistoryAdapter implements ISessionHistoryService {
     private toDbFormat(entry: SessionHistoryEntry): DbSessionHistory {
         return {
             id: entry.id,
-            mission_json: entry.mission ? JSON.stringify(entry.mission) : null,
+            missionJson: entry.mission ? JSON.stringify(entry.mission) : null,
             language: entry.language,
-            from_language: entry.fromLanguage,
+            fromLanguage: entry.fromLanguage,
             mode: entry.mode,
             voice: entry.voice,
-            result_json: JSON.stringify(entry.result),
-            completed_at: entry.completedAt,
-            ielts_result_json: entry.ieltsResult ? JSON.stringify(entry.ieltsResult) : null,
-            ielts_config_json: entry.ieltsConfig ? JSON.stringify(entry.ieltsConfig) : null,
-            sync_version: entry.sync_version ?? 1,
-            synced_at: entry.synced_at ?? null,
+            resultJson: JSON.stringify(entry.result),
+            completedAt: entry.completedAt,
+            ieltsResultJson: entry.ieltsResult ? JSON.stringify(entry.ieltsResult) : null,
+            ieltsConfigJson: entry.ieltsConfig ? JSON.stringify(entry.ieltsConfig) : null,
+            syncVersion: entry.syncVersion ?? 1,
+            syncedAt: entry.syncedAt ?? null,
             deleted: entry.deleted ? 1 : 0,
-            deleted_at: entry.deleted_at ?? null,
+            deletedAt: entry.deletedAt ?? null,
         };
     }
 
     private fromDbFormat(row: DbSessionHistory): SessionHistoryEntry {
         return {
             id: row.id,
-            mission: row.mission_json ? JSON.parse(row.mission_json) : null,
+            mission: row.missionJson ? JSON.parse(row.missionJson) : null,
             language: row.language,
-            fromLanguage: row.from_language,
+            fromLanguage: row.fromLanguage,
             mode: row.mode as SessionHistoryEntry["mode"],
             voice: row.voice,
-            result: JSON.parse(row.result_json),
-            completedAt: row.completed_at,
-            ieltsResult: row.ielts_result_json ? JSON.parse(row.ielts_result_json) : undefined,
-            ieltsConfig: row.ielts_config_json ? JSON.parse(row.ielts_config_json) : undefined,
-            sync_version: row.sync_version,
-            synced_at: row.synced_at,
+            result: JSON.parse(row.resultJson),
+            completedAt: row.completedAt,
+            ieltsResult: row.ieltsResultJson ? JSON.parse(row.ieltsResultJson) : undefined,
+            ieltsConfig: row.ieltsConfigJson ? JSON.parse(row.ieltsConfigJson) : undefined,
+            syncVersion: row.syncVersion,
+            syncedAt: row.syncedAt,
             deleted: row.deleted === 1,
-            deleted_at: row.deleted_at,
+            deletedAt: row.deletedAt,
         };
     }
 
@@ -89,19 +60,19 @@ export class WebSessionHistoryAdapter implements ISessionHistoryService {
             collection = collection.and((item) => item.language === filter.language);
         }
         if (filter?.fromLanguage) {
-            collection = collection.and((item) => item.from_language === filter.fromLanguage);
+            collection = collection.and((item) => item.fromLanguage === filter.fromLanguage);
         }
         if (filter?.mode) {
             collection = collection.and((item) => item.mode === filter.mode);
         }
         if (filter?.fromDate) {
-            collection = collection.and((item) => item.completed_at >= filter.fromDate!);
+            collection = collection.and((item) => item.completedAt >= filter.fromDate!);
         }
         if (filter?.toDate) {
-            collection = collection.and((item) => item.completed_at <= filter.toDate!);
+            collection = collection.and((item) => item.completedAt <= filter.toDate!);
         }
 
-        let results = await collection.sortBy("completed_at");
+        let results = await collection.sortBy("completedAt");
         results = results.reverse(); // Most recent first
 
         if (filter?.offset) {
@@ -124,11 +95,12 @@ export class WebSessionHistoryAdapter implements ISessionHistoryService {
 
     async delete(id: string): Promise<void> {
         const now = Date.now();
+        const existing = await db.sessions.get(id);
         await db.sessions.update(id, {
             deleted: 1,
-            deleted_at: now,
-            sync_version: (await db.sessions.get(id))?.sync_version ?? 0 + 1,
-            synced_at: null,
+            deletedAt: now,
+            syncVersion: (existing?.syncVersion ?? 0) + 1,
+            syncedAt: null,
         });
     }
 
@@ -136,8 +108,8 @@ export class WebSessionHistoryAdapter implements ISessionHistoryService {
         const now = Date.now();
         await db.sessions.toCollection().modify({
             deleted: 1,
-            deleted_at: now,
-            synced_at: null,
+            deletedAt: now,
+            syncedAt: null,
         });
     }
 

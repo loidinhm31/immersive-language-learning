@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import type { SyncStatus, SyncResult, SyncConfig } from "@immersive-lang/shared";
-import { useSyncService } from "@immersive-lang/ui/platform";
+import type { SyncStatus, SyncResult, SyncConfig, SyncProgress } from "@immersive-lang/shared";
+import { useSyncService, useAuthService } from "@immersive-lang/ui/platform";
 
 export interface UseSyncReturn {
     status: SyncStatus | null;
     lastResult: SyncResult | null;
     error: string | null;
     isSyncing: boolean;
+    syncProgress: SyncProgress | null;
     syncNow: () => Promise<SyncResult>;
     configure: (config: SyncConfig) => Promise<void>;
     refreshStatus: () => Promise<void>;
@@ -18,10 +19,12 @@ export interface UseSyncReturn {
  */
 export const useSync = (): UseSyncReturn => {
     const syncService = useSyncService();
+    const authService = useAuthService();
     const [status, setStatus] = useState<SyncStatus | null>(null);
     const [lastResult, setLastResult] = useState<SyncResult | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
 
     const refreshStatus = useCallback(async () => {
         try {
@@ -38,7 +41,19 @@ export const useSync = (): UseSyncReturn => {
         try {
             setIsSyncing(true);
             setError(null);
-            const result = await syncService.syncNow();
+            setSyncProgress(null);
+
+            let result: SyncResult;
+
+            // Use syncWithProgress if available for pagination support
+            if (syncService.syncWithProgress) {
+                result = await syncService.syncWithProgress((progress) => {
+                    setSyncProgress(progress);
+                });
+            } else {
+                result = await syncService.syncNow();
+            }
+
             setLastResult(result);
             if (!result.success && result.error) {
                 setError(result.error);
@@ -60,6 +75,7 @@ export const useSync = (): UseSyncReturn => {
             return failedResult;
         } finally {
             setIsSyncing(false);
+            setSyncProgress(null);
         }
     }, [syncService, refreshStatus]);
 
@@ -67,14 +83,14 @@ export const useSync = (): UseSyncReturn => {
         async (config: SyncConfig) => {
             try {
                 setError(null);
-                await syncService.configure(config);
+                await authService.configureSync(config);
                 await refreshStatus();
             } catch (err) {
                 const errorMsg = err instanceof Error ? err.message : "Failed to configure sync";
                 setError(errorMsg);
             }
         },
-        [syncService, refreshStatus],
+        [authService, refreshStatus],
     );
 
     // Refresh status on mount
@@ -87,6 +103,7 @@ export const useSync = (): UseSyncReturn => {
         lastResult,
         error,
         isSyncing,
+        syncProgress,
         syncNow,
         configure,
         refreshStatus,

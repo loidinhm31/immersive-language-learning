@@ -1,10 +1,10 @@
-import type { SyncResult, SyncStatus, SyncConfig } from "@immersive-lang/shared";
+import type { SyncResult, SyncStatus, SyncProgress } from "@immersive-lang/shared";
 import { QmSyncClient, fetchHttpClient, createSyncClientConfig, initialCheckpoint } from "@immersive-lang/shared";
 import { APP_ID, env } from "@immersive-lang/shared";
 import { serviceLogger } from "@immersive-lang/ui/utils";
 import type { ISyncService } from "@immersive-lang/ui/adapters/factory/interfaces";
 import { IndexedDBSyncStorage } from "./IndexedDBSyncStorage";
-import { setSyncMeta, getSyncMeta, SYNC_META_KEYS } from "@immersive-lang/ui/adapters/web";
+import { setSyncMeta, SYNC_META_KEYS } from "@immersive-lang/ui/adapters/web";
 
 /**
  * Token provider callback type
@@ -21,55 +21,63 @@ type TokenProvider = () => Promise<{
 type TokenSaver = (accessToken: string, refreshToken: string, userId: string) => Promise<void>;
 
 /**
+ * Sync config provider callback type
+ */
+type SyncConfigProvider = () => {
+    serverUrl: string;
+    appId: string;
+    apiKey: string;
+};
+
+/**
  * IndexedDB sync adapter for web platform
  * Orchestrates sync operations between local IndexedDB and qm-center-server
  */
 export class IndexedDBSyncAdapter implements ISyncService {
-    private client: QmSyncClient;
+    private client: QmSyncClient | null = null;
     private storage: IndexedDBSyncStorage;
+    private getConfig: SyncConfigProvider;
     private getTokens: TokenProvider;
     private saveTokens: TokenSaver;
     private isSyncingFlag = false;
+    private lastConfigHash: string = "";
 
-    constructor(config: {
-        serverUrl?: string;
-        appId?: string;
-        apiKey?: string;
-        getTokens: TokenProvider;
-        saveTokens: TokenSaver;
-    }) {
-        const serverUrl = config.serverUrl || env.serverUrl;
-        const appId = config.appId || env.appId || APP_ID;
-        const apiKey = config.apiKey || env.apiKey;
-
+    constructor(config: { getConfig: SyncConfigProvider; getTokens: TokenProvider; saveTokens: TokenSaver }) {
+        this.getConfig = config.getConfig;
         this.getTokens = config.getTokens;
         this.saveTokens = config.saveTokens;
         this.storage = new IndexedDBSyncStorage();
 
-        // Create QmSyncClient with fetch HTTP client
-        this.client = new QmSyncClient(createSyncClientConfig(serverUrl, appId, apiKey), fetchHttpClient);
-
-        serviceLogger.sync(`IndexedDB sync adapter initialized: ${serverUrl}`);
+        serviceLogger.sync("IndexedDB sync adapter initialized");
     }
 
-    async configure(config: SyncConfig): Promise<void> {
-        if (config.serverUrl) {
-            await setSyncMeta(SYNC_META_KEYS.SERVER_URL, config.serverUrl);
-            // Re-create client with new URL
-            const appId = config.appId || (await getSyncMeta(SYNC_META_KEYS.APP_ID)) || APP_ID;
-            const apiKey = config.apiKey || (await getSyncMeta(SYNC_META_KEYS.API_KEY)) || env.apiKey;
-            this.client = new QmSyncClient(createSyncClientConfig(config.serverUrl, appId, apiKey), fetchHttpClient);
+    private getConfigHash(config: { serverUrl: string; appId: string; apiKey: string }): string {
+        return `${config.serverUrl}|${config.appId}|${config.apiKey}`;
+    }
+
+    private ensureClient(): QmSyncClient {
+        const config = this.getConfig();
+        const hash = this.getConfigHash(config);
+
+        if (!this.client || hash !== this.lastConfigHash) {
+            // Config changed, recreate client
+            this.client = new QmSyncClient(
+                createSyncClientConfig(config.serverUrl, config.appId, config.apiKey),
+                fetchHttpClient,
+            );
+            this.lastConfigHash = hash;
+            serviceLogger.sync(`Sync client created/updated: ${config.serverUrl}`);
         }
-        if (config.appId) {
-            await setSyncMeta(SYNC_META_KEYS.APP_ID, config.appId);
-        }
-        if (config.apiKey) {
-            await setSyncMeta(SYNC_META_KEYS.API_KEY, config.apiKey);
-        }
-        serviceLogger.sync("Sync configuration updated");
+
+        return this.client;
     }
 
     async syncNow(): Promise<SyncResult> {
+        // Call syncWithProgress with a no-op callback for backwards compatibility
+        return this.syncWithProgress(() => {});
+    }
+
+    async syncWithProgress(onProgress: (progress: SyncProgress) => void): Promise<SyncResult> {
         if (this.isSyncingFlag) {
             return {
                 pushed: 0,
@@ -87,6 +95,9 @@ export class IndexedDBSyncAdapter implements ISyncService {
         try {
             serviceLogger.sync("Starting sync...");
 
+            // Ensure client is up-to-date with current config
+            const client = this.ensureClient();
+
             // Get tokens from auth service
             const tokens = await this.getTokens();
             if (!tokens.accessToken || !tokens.refreshToken) {
@@ -94,7 +105,7 @@ export class IndexedDBSyncAdapter implements ISyncService {
             }
 
             // Set tokens on client
-            this.client.setTokens(tokens.accessToken, tokens.refreshToken);
+            client.setTokens(tokens.accessToken, tokens.refreshToken);
 
             // Get pending changes
             const pendingChanges = await this.storage.getPendingChanges();
@@ -108,30 +119,92 @@ export class IndexedDBSyncAdapter implements ISyncService {
             }
 
             // Perform delta sync (push + pull in one call)
-            const response = await this.client.delta(pendingChanges, checkpoint);
+            const response = await client.delta(pendingChanges, checkpoint);
 
-            // Mark pushed records as synced
-            if (response.push && response.push.synced > 0) {
-                await this.storage.markSynced(pendingChanges.slice(0, response.push.synced));
+            let pushed = 0;
+            let pulled = 0;
+            let conflicts = 0;
+
+            // Push phase
+            if (response.push) {
+                pushed = response.push.synced;
+                conflicts = response.push.conflicts?.length ?? 0;
+
+                if (pushed > 0) {
+                    await this.storage.markSynced(pendingChanges.slice(0, pushed));
+                }
+
+                // Emit progress after push phase
+                onProgress({
+                    phase: "pushing",
+                    recordsPushed: pushed,
+                    recordsPulled: 0,
+                    hasMore: response.pull?.hasMore ?? false,
+                    currentPage: 0,
+                });
             }
 
-            // Apply pulled records
-            if (response.pull && response.pull.records.length > 0) {
-                await this.storage.applyRemoteChanges(response.pull.records);
-            }
+            // Pull phase with hasMore pagination
+            if (response.pull) {
+                // Collect ALL records from ALL pages first to ensure proper ordering
+                const allRecords = [...response.pull.records];
+                pulled = allRecords.length;
 
-            // Save new checkpoint
-            if (response.pull?.checkpoint) {
-                await this.storage.saveCheckpoint(response.pull.checkpoint);
+                // Auto-continue pulling while hasMore is true
+                let currentCheckpoint = response.pull.checkpoint;
+                let hasMore = response.pull.hasMore;
+                let page = 1;
+
+                // Emit progress after initial pull
+                onProgress({
+                    phase: "pulling",
+                    recordsPushed: pushed,
+                    recordsPulled: pulled,
+                    hasMore,
+                    currentPage: page,
+                });
+
+                while (hasMore) {
+                    page++;
+                    serviceLogger.sync(
+                        `Pulling more records (page ${page}), checkpoint: ${JSON.stringify(currentCheckpoint)}`,
+                    );
+
+                    const pullResponse = await client.pull(currentCheckpoint);
+
+                    // Collect records from this page
+                    allRecords.push(...pullResponse.records);
+                    pulled += pullResponse.records.length;
+
+                    currentCheckpoint = pullResponse.checkpoint;
+                    hasMore = pullResponse.hasMore;
+
+                    // Emit progress after each page
+                    onProgress({
+                        phase: "pulling",
+                        recordsPushed: pushed,
+                        recordsPulled: pulled,
+                        hasMore,
+                        currentPage: page,
+                    });
+                }
+
+                // Apply ALL changes at once after collecting from all pages
+                serviceLogger.sync(`Applying ${allRecords.length} total records from ${page} pages`);
+                if (allRecords.length > 0) {
+                    await this.storage.applyRemoteChanges(allRecords);
+                }
+
+                await this.storage.saveCheckpoint(currentCheckpoint);
             }
 
             // Save last sync timestamp
             await this.storage.saveLastSyncAt(syncedAt);
 
             const result: SyncResult = {
-                pushed: response.push?.synced ?? 0,
-                pulled: response.pull?.records.length ?? 0,
-                conflicts: response.push?.conflicts?.length ?? 0,
+                pushed,
+                pulled,
+                conflicts,
                 success: true,
                 syncedAt,
             };
@@ -155,6 +228,7 @@ export class IndexedDBSyncAdapter implements ISyncService {
     }
 
     async getStatus(): Promise<SyncStatus> {
+        const client = this.ensureClient();
         const [pendingChanges, lastSyncAt] = await Promise.all([
             this.storage.getPendingChangesCount(),
             this.storage.getLastSyncAt(),
@@ -166,7 +240,7 @@ export class IndexedDBSyncAdapter implements ISyncService {
             authenticated: !!(tokens.accessToken && tokens.refreshToken),
             lastSyncAt: lastSyncAt ?? undefined,
             pendingChanges,
-            serverUrl: this.client.config.serverUrl,
+            serverUrl: client.config.serverUrl,
             isSyncing: this.isSyncingFlag,
         };
     }

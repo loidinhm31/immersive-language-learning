@@ -1,67 +1,127 @@
-import type { ReactNode } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { History, type LucideIcon, Settings, Target } from "lucide-react";
+import { ChevronLeft, ChevronRight, History, type LucideIcon, Settings, Target, Sparkles } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { useNav } from "@immersive-lang/ui/hooks";
 
-export interface NavItem {
-    label: string;
-    href: string;
+interface NavItem {
+    id: string;
     icon: LucideIcon;
-    badge?: string | number;
+    label: string;
+    path: string;
 }
 
 export interface SidebarProps {
-    items?: NavItem[];
-    header?: ReactNode;
-    footer?: ReactNode;
-    className?: string;
+    isCollapsed: boolean;
+    onToggleCollapse: () => void;
 }
 
-const defaultNavItems: NavItem[] = [
-    { label: "Missions", href: "/missions", icon: Target },
-    { label: "History", href: "/history", icon: History },
-    { label: "Settings", href: "/settings", icon: Settings },
+const navItems: NavItem[] = [
+    { id: "missions", icon: Target, label: "Missions", path: "/missions" },
+    { id: "history", icon: History, label: "History", path: "/history" },
+    { id: "settings", icon: Settings, label: "Settings", path: "/settings" },
 ];
 
-export function Sidebar({ items = defaultNavItems, header, footer, className = "" }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
     const location = useLocation();
-    const { to } = useNav();
+    const { to, nav: navigate } = useNav();
+
+    // Check if the current path matches or starts with the nav item path
+    const isPathActive = (navPath: string) => {
+        const fullPath = to(navPath);
+        if (navPath === "/missions") {
+            return location.pathname === fullPath || location.pathname === to("/");
+        }
+        return location.pathname === fullPath || location.pathname.startsWith(fullPath);
+    };
 
     return (
-        <div className={`flex h-full flex-col bg-surface/50 backdrop-blur-sm ${className}`}>
-            {header && <div className="flex h-14 items-center border-b border-glass-border px-4">{header}</div>}
+        <aside
+            className={`fixed left-0 top-0 bottom-0 z-40 hidden md:flex flex-col border-r transition-all duration-300 ${
+                isCollapsed ? "w-16" : "w-64"
+            }`}
+            style={{
+                background: "var(--glass-bg)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                borderRightColor: "var(--color-border-light)",
+                boxShadow: "4px 0 20px rgba(0, 0, 0, 0.1)",
+            }}
+        >
+            {/* Brand */}
+            <div
+                className={`flex items-center gap-3 py-5 border-b transition-all duration-300 ${
+                    isCollapsed ? "px-3 justify-center" : "px-6"
+                }`}
+                style={{ borderBottomColor: "var(--color-border-light)" }}
+            >
+                <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                        background:
+                            "linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%)",
+                        boxShadow: "0 4px 12px rgba(163, 177, 138, 0.3)",
+                    }}
+                >
+                    <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                {!isCollapsed && (
+                    <div className="overflow-hidden">
+                        <h1 className="text-lg font-bold text-text-main whitespace-nowrap font-heading">Immergo</h1>
+                    </div>
+                )}
+            </div>
 
-            <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-                {items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = location.pathname === to(item.href);
+            {/* Navigation */}
+            <nav className="flex-1 px-3 py-4">
+                <ul className="space-y-1">
+                    {navItems.map((item) => {
+                        const isActive = isPathActive(item.path);
+                        const Icon = item.icon;
 
-                    return (
-                        <NavLink
-                            key={item.href}
-                            to={to(item.href)}
-                            className={`
-                flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200
-                ${
-                    isActive
-                        ? "bg-accent-primary text-white shadow-sm"
-                        : "text-text-sub hover:bg-surface hover:text-text-main"
-                }
-              `}
-                        >
-                            <Icon className="h-5 w-5 shrink-0" />
-                            <span className="flex-1 text-left">{item.label}</span>
-                            {item.badge && (
-                                <span className="rounded-full bg-accent-primary/10 px-2 py-0.5 text-xs font-medium text-accent-primary">
-                                    {item.badge}
-                                </span>
-                            )}
-                        </NavLink>
-                    );
-                })}
+                        return (
+                            <li key={item.id}>
+                                <button
+                                    onClick={() => navigate(item.path)}
+                                    title={isCollapsed ? item.label : undefined}
+                                    className={`w-full flex items-center gap-3 py-3 rounded-xl transition-all duration-200 group ${
+                                        isCollapsed ? "px-0 justify-center" : "px-4"
+                                    } ${
+                                        isActive
+                                            ? "bg-gradient-to-br from-primary-500 to-secondary-500 text-white shadow-[0_4px_12px_rgba(163,177,138,0.3)]"
+                                            : "text-text-sub hover:bg-white/10"
+                                    }`}
+                                >
+                                    <Icon
+                                        className={`w-5 h-5 flex-shrink-0 transition-all ${
+                                            isActive ? "stroke-[2.5]" : "stroke-2 group-hover:stroke-[2.5]"
+                                        }`}
+                                    />
+                                    {!isCollapsed && (
+                                        <>
+                                            <span
+                                                className={`text-sm whitespace-nowrap ${isActive ? "font-bold" : "font-medium"}`}
+                                            >
+                                                {item.label}
+                                            </span>
+                                            {isActive && (
+                                                <div className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0 bg-white" />
+                                            )}
+                                        </>
+                                    )}
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ul>
             </nav>
 
-            {footer && <div className="border-t border-glass-border p-4">{footer}</div>}
-        </div>
+            {/* Collapse Toggle */}
+            <button
+                onClick={onToggleCollapse}
+                className="mx-3 mb-3 p-2 rounded-lg transition-all hover:bg-white/10 flex items-center justify-center text-text-sub"
+                title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+                {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+            </button>
+        </aside>
     );
 }

@@ -5,3 +5,4 @@ export { Spinner, type SpinnerProps } from "./Spinner";
 export { ScoreBadge, type ScoreBadgeProps } from "./ScoreBadge";
 export { Input, type InputProps } from "./Input";
 export { Label, type LabelProps } from "./Label";
+export { ErrorBoundary, type ErrorBoundaryProps, type FallbackProps } from "./ErrorBoundary";

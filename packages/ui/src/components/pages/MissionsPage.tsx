@@ -213,35 +213,6 @@ export function MissionsPage({
                     </div>
                     <div className="font-mono text-xs opacity-50 ml-2.5 text-text-main">developer_mode.sh</div>
                 </div>
-
-                <div className="p-8 flex items-center justify-between gap-8 flex-wrap">
-                    <div className="flex-2 min-w-75">
-                        <h3 className="font-mono text-accent-primary mb-2 text-xl flex items-center gap-2.5">
-                            <span className="opacity-50">&gt;</span> Deploy Your Own Version
-                        </h3>
-                        <p className="opacity-70 text-base leading-relaxed max-w-125 text-text-sub">
-                            Launch your own personalized instance in just 1-click. Customize scenarios, add new
-                            languages, or rewrite the world.
-                        </p>
-                    </div>
-
-                    <div className="flex-1 flex justify-end gap-4">
-                        <a
-                            href="https://deploy.cloud.run/?git_repo=https://github.com/loidinhm31/immersive-language-learning&utm_source=github&utm_medium=unpaidsoc&utm_campaign=FY-Q1-global-cloud-ai-starter-apps&utm_content=immergo-app&utm_term=-"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-3 py-4 px-8 rounded-xl text-[#1a73e8] bg-[rgba(26,115,232,0.05)] no-underline font-extrabold shadow-[0_4px_15px_rgba(26,115,232,0.1)] transition-all duration-200 text-lg whitespace-nowrap border-2 border-dashed border-[#1a73e8] hover:-translate-y-0.75 hover:shadow-[0_8px_25px_rgba(26,115,232,0.2)] hover:bg-[rgba(26,115,232,0.1)]"
-                        >
-                            <img
-                                src="https://www.gstatic.com/images/branding/product/1x/google_cloud_48dp.png"
-                                width={24}
-                                height={24}
-                                alt="Cloud Run"
-                            />
-                            Deploy to Cloud Run
-                        </a>
-                    </div>
-                </div>
             </Card>
         </div>
     );

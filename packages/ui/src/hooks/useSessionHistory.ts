@@ -7,7 +7,7 @@ import type {
     IeltsAssessmentResult,
     IeltsConfig,
 } from "@immersive-lang/shared";
-import { ServiceFactory } from "@immersive-lang/ui/adapters";
+import { useSessionHistoryService } from "@immersive-lang/ui/platform";
 import type { SessionHistoryFilter } from "@immersive-lang/ui/adapters/factory/interfaces";
 
 export interface UseSessionHistoryReturn {
@@ -36,72 +36,78 @@ function generateId(): string {
 }
 
 export function useSessionHistory(): UseSessionHistoryReturn {
+    const sessionHistoryService = useSessionHistoryService();
     const [sessions, setSessions] = useState<SessionHistoryEntry[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const loadSessions = useCallback(async (filter?: SessionHistoryFilter) => {
-        try {
-            setLoading(true);
-            setError(null);
-            const service = ServiceFactory.getSessionHistoryService();
-            const entries = await service.getAll(filter);
-            setSessions(entries);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to load sessions");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const loadSessions = useCallback(
+        async (filter?: SessionHistoryFilter) => {
+            try {
+                setLoading(true);
+                setError(null);
+                const entries = await sessionHistoryService.getAll(filter);
+                setSessions(entries);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to load sessions");
+            } finally {
+                setLoading(false);
+            }
+        },
+        [sessionHistoryService],
+    );
 
-    const saveSession = useCallback(async (params: SaveSessionParams) => {
-        try {
-            const service = ServiceFactory.getSessionHistoryService();
-            const entry: SessionHistoryEntry = {
-                id: generateId(),
-                mission: params.mission,
-                language: params.language,
-                fromLanguage: params.fromLanguage,
-                mode: params.mode,
-                voice: params.voice,
-                result: params.result,
-                completedAt: Date.now(),
-                ieltsResult: params.ieltsResult,
-                ieltsConfig: params.ieltsConfig,
-                sync_version: 1,
-                synced_at: null,
-                deleted: false,
-                deleted_at: null,
-            };
-            await service.save(entry);
-            setSessions((prev) => [entry, ...prev]);
-        } catch (err) {
-            console.error("Failed to save session:", err);
-            throw err;
-        }
-    }, []);
+    const saveSession = useCallback(
+        async (params: SaveSessionParams) => {
+            try {
+                const entry: SessionHistoryEntry = {
+                    id: generateId(),
+                    mission: params.mission,
+                    language: params.language,
+                    fromLanguage: params.fromLanguage,
+                    mode: params.mode,
+                    voice: params.voice,
+                    result: params.result,
+                    completedAt: Date.now(),
+                    ieltsResult: params.ieltsResult,
+                    ieltsConfig: params.ieltsConfig,
+                    syncVersion: 1,
+                    syncedAt: null,
+                    deleted: false,
+                    deletedAt: null,
+                };
+                await sessionHistoryService.save(entry);
+                setSessions((prev) => [entry, ...prev]);
+            } catch (err) {
+                console.error("Failed to save session:", err);
+                throw err;
+            }
+        },
+        [sessionHistoryService],
+    );
 
-    const deleteSession = useCallback(async (id: string) => {
-        try {
-            const service = ServiceFactory.getSessionHistoryService();
-            await service.delete(id);
-            setSessions((prev) => prev.filter((s) => s.id !== id));
-        } catch (err) {
-            console.error("Failed to delete session:", err);
-            throw err;
-        }
-    }, []);
+    const deleteSession = useCallback(
+        async (id: string) => {
+            try {
+                await sessionHistoryService.delete(id);
+                setSessions((prev) => prev.filter((s) => s.id !== id));
+            } catch (err) {
+                console.error("Failed to delete session:", err);
+                throw err;
+            }
+        },
+        [sessionHistoryService],
+    );
 
     const clearHistory = useCallback(async () => {
         try {
-            const service = ServiceFactory.getSessionHistoryService();
-            await service.clear();
+            await sessionHistoryService.clear();
             setSessions([]);
         } catch (err) {
             console.error("Failed to clear history:", err);
             throw err;
         }
-    }, []);
+    }, [sessionHistoryService]);
 
     return {
         sessions,

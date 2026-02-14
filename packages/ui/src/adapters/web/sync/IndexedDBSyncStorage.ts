@@ -12,23 +12,25 @@ export class IndexedDBSyncStorage {
     async getPendingChanges(): Promise<SyncRecord[]> {
         const records: SyncRecord[] = [];
 
-        // Get unsynced session history (where synced_at is null or undefined)
+        // Get unsynced session history (where syncedAt is null or undefined)
         const sessions = await db.sessions.toArray();
         for (const session of sessions) {
-            if (session.synced_at === null || session.synced_at === undefined) {
+            if (session.syncedAt === null || session.syncedAt === undefined) {
                 records.push({
-                    tableName: "session_history",
+                    tableName: "sessionHistory",
                     rowId: session.id,
                     data: {
-                        mission_json: session.mission_json,
+                        missionJson: session.missionJson,
                         language: session.language,
-                        from_language: session.from_language,
+                        fromLanguage: session.fromLanguage,
                         mode: session.mode,
                         voice: session.voice,
-                        result_json: session.result_json,
-                        completed_at: session.completed_at,
+                        resultJson: session.resultJson,
+                        completedAt: session.completedAt,
+                        ieltsResultJson: session.ieltsResultJson,
+                        ieltsConfigJson: session.ieltsConfigJson,
                     },
-                    version: session.sync_version,
+                    version: session.syncVersion,
                     deleted: session.deleted === 1,
                 });
             }
@@ -39,7 +41,7 @@ export class IndexedDBSyncStorage {
         for (const change of pendingDeletes) {
             if (change.operation === "delete") {
                 records.push({
-                    tableName: "session_history",
+                    tableName: "sessionHistory",
                     rowId: change.rowId,
                     data: {},
                     version: change.version,
@@ -56,7 +58,7 @@ export class IndexedDBSyncStorage {
      */
     async getPendingChangesCount(): Promise<number> {
         const unsyncedCount = await db.sessions
-            .filter((session) => session.synced_at === null || session.synced_at === undefined)
+            .filter((session) => session.syncedAt === null || session.syncedAt === undefined)
             .count();
         const pendingDeletesCount = await db._pendingChanges.count();
         return unsyncedCount + pendingDeletesCount;
@@ -73,8 +75,8 @@ export class IndexedDBSyncStorage {
                 // Remove from pending changes and hard delete from sessions if needed
                 await db._pendingChanges.where({ tableName: record.tableName, rowId: record.rowId }).delete();
             } else {
-                // Update synced_at timestamp
-                await db.sessions.update(record.rowId, { synced_at: now });
+                // Update syncedAt timestamp
+                await db.sessions.update(record.rowId, { syncedAt: now });
             }
         }
     }
@@ -102,24 +104,28 @@ export class IndexedDBSyncStorage {
 
     /**
      * Upsert a record (create or update)
+     * Handles both old snake_case and new camelCase data from server for backwards compatibility
      */
     private async upsertRecord(record: PullRecord, now: number): Promise<void> {
         const existing = await db.sessions.get(record.rowId);
+        const data = record.data;
 
-        // Convert server format to DB format
+        // Convert server format to DB format (handle both snake_case and camelCase for backwards compat)
         const dbRecord = {
             id: record.rowId,
-            mission_json: (record.data.mission_json as string) ?? null,
-            language: record.data.language as string,
-            from_language: record.data.from_language as string,
-            mode: record.data.mode as string,
-            voice: record.data.voice as string,
-            result_json: record.data.result_json as string,
-            completed_at: record.data.completed_at as number,
-            sync_version: record.version,
-            synced_at: now,
+            missionJson: ((data.missionJson ?? data.mission_json) as string) ?? null,
+            language: data.language as string,
+            fromLanguage: (data.fromLanguage ?? data.from_language) as string,
+            mode: data.mode as string,
+            voice: data.voice as string,
+            resultJson: (data.resultJson ?? data.result_json) as string,
+            completedAt: (data.completedAt ?? data.completed_at) as number,
+            ieltsResultJson: ((data.ieltsResultJson ?? data.ielts_result_json) as string) ?? null,
+            ieltsConfigJson: ((data.ieltsConfigJson ?? data.ielts_config_json) as string) ?? null,
+            syncVersion: record.version,
+            syncedAt: now,
             deleted: 0,
-            deleted_at: null,
+            deletedAt: null,
         };
 
         if (!existing) {
@@ -127,7 +133,7 @@ export class IndexedDBSyncStorage {
             await db.sessions.add(dbRecord);
         } else {
             // Existing record - check version for conflict resolution
-            if (existing.sync_version <= record.version) {
+            if (existing.syncVersion <= record.version) {
                 // Server wins (or same version)
                 await db.sessions.put(dbRecord);
             }
@@ -142,8 +148,8 @@ export class IndexedDBSyncStorage {
         const existing = await db.sessions.get(record.rowId);
         if (!existing) return;
 
-        // Hard delete if past TTL, otherwise soft delete
-        const deletedAt = (record.data.deleted_at as number | null) ?? Date.now();
+        // Hard delete if past TTL, otherwise soft delete (handle both snake_case and camelCase)
+        const deletedAt = ((record.data.deletedAt ?? record.data.deleted_at) as number | null) ?? Date.now();
         const TTL = 60 * 24 * 60 * 60 * 1000; // 60 days in ms
 
         if (Date.now() - deletedAt > TTL) {
@@ -153,9 +159,9 @@ export class IndexedDBSyncStorage {
             // Soft delete
             await db.sessions.update(record.rowId, {
                 deleted: 1,
-                deleted_at: deletedAt,
-                sync_version: record.version,
-                synced_at: Date.now(),
+                deletedAt: deletedAt,
+                syncVersion: record.version,
+                syncedAt: Date.now(),
             });
         }
     }

@@ -479,9 +479,7 @@ export function IeltsPart2ChatPage({ ieltsConfig, fromLanguage, voice, onBack, o
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
                     <div className="bg-white text-gray-900 p-8 rounded-2xl max-w-125 text-center shadow-lg">
                         <h3 className="mb-4 text-accent-primary font-heading">Oops, this is too popular!</h3>
-                        <p className="mb-6 leading-relaxed">
-                            The global quota has been reached. Try again later or deploy your own version.
-                        </p>
+                        <p className="mb-6 leading-relaxed">The global quota has been reached. Try again later.</p>
                         <Button variant="primary" onClick={() => setShowRateLimitDialog(false)}>
                             Got it
                         </Button>

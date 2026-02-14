@@ -18,7 +18,7 @@ interface ThemeProviderProps {
     defaultTheme?: Theme;
     /**
      * When true, the provider dispatches custom events instead of modifying
-     * document.body directly. Use this when embedding the app inside a parent
+     * document.documentElement directly. Use this when embedding the app inside a parent
      * application to avoid theme conflicts.
      */
     embedded?: boolean;
@@ -73,11 +73,20 @@ export function ThemeProvider({
                     }),
                 );
             } else {
-                // Apply directly to document.body
+                // Apply to document.documentElement (cham-lang pattern)
+                const root = document.documentElement;
+
+                // Set data-theme attribute for CSS selectors
+                root.setAttribute("data-theme", resolved);
+
+                // Remove all theme classes before adding new one
+                root.classList.remove("light-mode", "dark");
+
+                // Add appropriate class
                 if (resolved === "light") {
-                    document.body.classList.add("light-mode");
+                    root.classList.add("light-mode");
                 } else {
-                    document.body.classList.remove("light-mode");
+                    root.classList.add("dark");
                 }
             }
         },

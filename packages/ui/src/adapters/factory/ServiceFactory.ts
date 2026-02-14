@@ -1,103 +1,132 @@
 /**
  * Service Factory
+ * Uses setter/getter pattern for service initialization
  *
- * Provides lazy singleton instances of platform-specific services.
- * Automatically selects Tauri or Web implementations based on platform.
+ * ARCHITECTURE:
+ * - Services are set externally via setters (e.g., in ImmersiveLangApp.tsx)
+ * - Getters throw if service not initialized (enforces explicit setup)
+ * - Both web and Tauri use the same IndexedDB-based implementations
  */
 
-import { isTauri } from "@immersive-lang/ui/adapters/shared";
 import type { IAuthService } from "@immersive-lang/ui/adapters/factory/interfaces";
 import type { ISyncService } from "@immersive-lang/ui/adapters/factory/interfaces";
 import type { ISessionHistoryService, IStorageService } from "@immersive-lang/ui/adapters";
-import { LocalStorageAdapter } from "@immersive-lang/ui/adapters/web";
-import { TauriSessionHistoryAdapter } from "@immersive-lang/ui/adapters/tauri";
-import { WebSessionHistoryAdapter } from "@immersive-lang/ui/adapters/web";
-import { QmServerAuthAdapter } from "@immersive-lang/ui/adapters/shared";
-import { TauriSyncAdapter } from "@immersive-lang/ui/adapters/tauri";
-import { IndexedDBSyncAdapter } from "@immersive-lang/ui/adapters/web";
 
-// Lazy singleton instances
+// Singleton instances (set via setters)
 let authService: IAuthService | null = null;
 let syncService: ISyncService | null = null;
 let storageService: IStorageService | null = null;
 let sessionHistoryService: ISessionHistoryService | null = null;
 
+// ============= Setters =============
+
+/**
+ * Set custom Auth Service
+ */
+export const setAuthService = (service: IAuthService): void => {
+    authService = service;
+};
+
+/**
+ * Set custom Sync Service
+ */
+export const setSyncService = (service: ISyncService): void => {
+    syncService = service;
+};
+
+/**
+ * Set custom Storage Service
+ */
+export const setStorageService = (service: IStorageService): void => {
+    storageService = service;
+};
+
+/**
+ * Set custom Session History Service
+ */
+export const setSessionHistoryService = (service: ISessionHistoryService): void => {
+    sessionHistoryService = service;
+};
+
+// ============= Getters =============
+
+/**
+ * Get the Auth Service
+ * @throws Error if service not initialized
+ */
+export const getAuthService = (): IAuthService => {
+    if (!authService) {
+        throw new Error("AuthService not initialized. Call setAuthService first.");
+    }
+    return authService;
+};
+
+/**
+ * Get the Sync Service
+ * @throws Error if service not initialized
+ */
+export const getSyncService = (): ISyncService => {
+    if (!syncService) {
+        throw new Error("SyncService not initialized. Call setSyncService first.");
+    }
+    return syncService;
+};
+
+/**
+ * Get the Storage Service
+ * @throws Error if service not initialized
+ */
+export const getStorageService = (): IStorageService => {
+    if (!storageService) {
+        throw new Error("StorageService not initialized. Call setStorageService first.");
+    }
+    return storageService;
+};
+
+/**
+ * Get the Session History Service
+ * @throws Error if service not initialized
+ */
+export const getSessionHistoryService = (): ISessionHistoryService => {
+    if (!sessionHistoryService) {
+        throw new Error("SessionHistoryService not initialized. Call setSessionHistoryService first.");
+    }
+    return sessionHistoryService;
+};
+
+// ============= Utilities =============
+
+/**
+ * Get all services as an object (useful for context providers)
+ * @throws Error if any required service is not initialized
+ */
+export const getAllServices = () => ({
+    auth: getAuthService(),
+    sync: getSyncService(),
+    storage: getStorageService(),
+    sessionHistory: getSessionHistoryService(),
+});
+
+/**
+ * Reset all service instances (useful for testing or logout)
+ */
+export const resetServices = (): void => {
+    authService = null;
+    syncService = null;
+    storageService = null;
+    sessionHistoryService = null;
+};
+
 /**
  * Service Factory for platform-agnostic service access
+ * @deprecated Use setter/getter functions instead
  */
 export const ServiceFactory = {
-    /**
-     * Get the authentication service
-     */
-    getAuthService(): IAuthService {
-        if (!authService) {
-            // Use QmServerAuthAdapter for both platforms (works in Tauri webview too)
-            authService = new QmServerAuthAdapter();
-        }
-        return authService;
-    },
-
-    /**
-     * Get the sync service
-     */
-    getSyncService(): ISyncService {
-        if (!syncService) {
-            if (isTauri()) {
-                syncService = new TauriSyncAdapter();
-            } else {
-                // Get auth service for token management
-                const auth = this.getAuthService();
-                syncService = new IndexedDBSyncAdapter({
-                    getTokens: () => auth.getTokens(),
-                    saveTokens: (a, r, u) => auth.saveTokensExternal!(a, r, u),
-                });
-            }
-        }
-        return syncService;
-    },
-
-    /**
-     * Get the storage service
-     */
-    getStorageService(): IStorageService {
-        if (!storageService) {
-            if (isTauri()) {
-                // TODO: Import and instantiate TauriStorageAdapter
-                throw new Error("TauriStorageAdapter not implemented. Add apps/native first.");
-            } else {
-                storageService = new LocalStorageAdapter();
-            }
-        }
-        return storageService!;
-    },
-
-    /**
-     * Get the session history service
-     */
-    getSessionHistoryService(): ISessionHistoryService {
-        if (!sessionHistoryService) {
-            if (isTauri()) {
-                sessionHistoryService = new TauriSessionHistoryAdapter();
-            } else {
-                sessionHistoryService = new WebSessionHistoryAdapter();
-            }
-        }
-        return sessionHistoryService!;
-    },
-
-    /**
-     * Reset all service instances (useful for testing)
-     */
-    reset(): void {
-        authService = null;
-        syncService = null;
-        storageService = null;
-        sessionHistoryService = null;
-    },
-
-    /**
-     * Inject mock services (for testing)
-     */
+    getAuthService,
+    getSyncService,
+    getStorageService,
+    getSessionHistoryService,
+    reset: resetServices,
     injectForTesting(services: {
         auth?: IAuthService;
         sync?: ISyncService;

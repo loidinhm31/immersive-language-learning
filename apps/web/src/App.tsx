@@ -1,7 +1,7 @@
-import { AppRoutes } from "@immersive-lang/ui/components/templates";
+import { ImmersiveLangApp } from "@immersive-lang/ui/embed";
 
 function App() {
-    return <AppRoutes />;
+    return <ImmersiveLangApp />;
 }
 
 export default App;

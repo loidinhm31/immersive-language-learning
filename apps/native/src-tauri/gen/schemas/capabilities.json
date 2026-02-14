@@ -4,6 +4,6 @@
         "description": "Default capabilities for the app",
         "local": true,
         "windows": ["main"],
-        "permissions": ["core:default", "opener:default", "store:default"]
+        "permissions": ["core:default", "opener:default"]
     }
 }

@@ -3,9 +3,17 @@ import { Button, Card, Input, Label, Badge } from "@immersive-lang/ui/components
 import { Cloud, CloudOff, Loader2, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { useSync } from "@immersive-lang/ui/hooks";
 import { useAuth } from "@immersive-lang/ui/hooks";
+import { isTauri } from "@immersive-lang/ui/adapters/shared";
 
-export const SyncSettings = () => {
-    const { status, lastResult, isSyncing, syncNow, configure } = useSync();
+interface SyncSettingsProps {
+    /**
+     * Whether running in embedded mode (hides server configuration)
+     */
+    embedded?: boolean;
+}
+
+export const SyncSettings = ({ embedded = false }: SyncSettingsProps) => {
+    const { status, lastResult, isSyncing, syncProgress, syncNow, configure } = useSync();
     const { isAuthenticated } = useAuth();
     const [serverUrl, setServerUrl] = useState("");
 
@@ -110,31 +118,59 @@ export const SyncSettings = () => {
                         )}
                     </Button>
                 )}
-            </Card>
 
-            {/* Server Configuration Card */}
-            <Card>
-                <h3 className="text-lg font-semibold mb-4">Server Configuration</h3>
-
-                <div className="flex flex-col gap-4">
-                    <div>
-                        <Label htmlFor="server-url">Server URL</Label>
-                        <Input
-                            id="server-url"
-                            type="text"
-                            placeholder="http://localhost:3000"
-                            value={serverUrl}
-                            onChange={(e) => setServerUrl(e.target.value)}
-                        />
-                        <p className="text-xs text-white/50 mt-1 mb-0">
-                            Current server: {status?.serverUrl || "Not configured"}
-                        </p>
+                {/* Sync Progress */}
+                {isSyncing && syncProgress && (
+                    <div className="mt-4 p-3 rounded-lg border bg-blue-500/10 border-blue-500/30">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                            <span className="font-medium capitalize">
+                                {syncProgress.phase === "pushing" ? "Pushing changes..." : "Pulling updates..."}
+                            </span>
+                        </div>
+                        <div className="text-[0.8125rem] text-white/70 space-y-1">
+                            {syncProgress.recordsPushed > 0 && <div>Pushed: {syncProgress.recordsPushed} records</div>}
+                            {syncProgress.phase === "pulling" && (
+                                <>
+                                    <div>Pulled: {syncProgress.recordsPulled} records</div>
+                                    <div className="flex items-center gap-2">
+                                        <span>Page: {syncProgress.currentPage}</span>
+                                        {syncProgress.hasMore && (
+                                            <Badge className="bg-blue-600 text-xs">More pages...</Badge>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
-                    <Button variant="secondary" size="sm" onClick={handleConfigureSync} disabled={!serverUrl}>
-                        Save Configuration
-                    </Button>
-                </div>
+                )}
             </Card>
+
+            {/* Server Configuration Card - Only shown in Tauri (native) mode */}
+            {isTauri() && (
+                <Card>
+                    <h3 className="text-lg font-semibold mb-4">Server Configuration</h3>
+
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            <Label htmlFor="server-url">Server URL</Label>
+                            <Input
+                                id="server-url"
+                                type="text"
+                                placeholder="http://localhost:3000"
+                                value={serverUrl}
+                                onChange={(e) => setServerUrl(e.target.value)}
+                            />
+                            <p className="text-xs text-white/50 mt-1 mb-0">
+                                Current server: {status?.serverUrl || "Not configured"}
+                            </p>
+                        </div>
+                        <Button variant="secondary" size="sm" onClick={handleConfigureSync} disabled={!serverUrl}>
+                            Save Configuration
+                        </Button>
+                    </div>
+                </Card>
+            )}
         </div>
     );
 };
