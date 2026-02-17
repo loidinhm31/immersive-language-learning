@@ -83,7 +83,7 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "linear-gradient(135deg, #0F2818 0%, #0A1A0E 50%, #1E3A1B 100%)",
+                backgroundColor: "var(--color-bg)",
                 padding: "1rem",
             }}
         >
@@ -91,11 +91,11 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                 style={{
                     maxWidth: "28rem",
                     width: "100%",
-                    backgroundColor: "rgba(26, 40, 31, 0.6)",
+                    backgroundColor: "var(--glass-bg)",
                     backdropFilter: "blur(16px)",
                     borderRadius: "1rem",
-                    border: "1px solid rgba(97, 191, 123, 0.2)",
-                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.37)",
+                    border: "1px solid var(--glass-border)",
+                    boxShadow: "var(--shadow-md)",
                     padding: "2rem",
                 }}
             >
@@ -103,10 +103,7 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                 <div style={{ textAlign: "center", marginBottom: "2rem" }}>
                     <div
                         style={{
-                            background: "linear-gradient(135deg, #61bf7b 0%, #d4a600 100%)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                            backgroundClip: "text",
+                            color: "var(--color-accent-primary)",
                             fontSize: "2rem",
                             fontWeight: "bold",
                             marginBottom: "0.5rem",
@@ -114,9 +111,7 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                     >
                         Immergo
                     </div>
-                    <p style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "0.875rem" }}>
-                        Immersive Language Learning
-                    </p>
+                    <p style={{ color: "var(--color-text-sub)", fontSize: "0.875rem" }}>Immersive Language Learning</p>
                 </div>
 
                 {/* Mode toggle */}
@@ -138,9 +133,8 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                             padding: "0.5rem",
                             borderRadius: "0.375rem",
                             border: "none",
-                            background:
-                                mode === "login" ? "linear-gradient(135deg, #61bf7b 0%, #509f63 100%)" : "transparent",
-                            color: mode === "login" ? "#fff" : "rgba(255, 255, 255, 0.6)",
+                            background: mode === "login" ? "var(--color-accent-primary)" : "transparent",
+                            color: mode === "login" ? "#fff" : "var(--color-text-sub)",
                             fontWeight: mode === "login" ? "600" : "normal",
                             cursor: "pointer",
                             transition: "all 0.2s",
@@ -156,11 +150,8 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                             padding: "0.5rem",
                             borderRadius: "0.375rem",
                             border: "none",
-                            background:
-                                mode === "register"
-                                    ? "linear-gradient(135deg, #d4a600 0%, #b89000 100%)"
-                                    : "transparent",
-                            color: mode === "register" ? "#fff" : "rgba(255, 255, 255, 0.6)",
+                            background: mode === "register" ? "var(--color-accent-secondary)" : "transparent",
+                            color: mode === "register" ? "#fff" : "var(--color-text-sub)",
                             fontWeight: mode === "register" ? "600" : "normal",
                             cursor: "pointer",
                             transition: "all 0.2s",
@@ -175,13 +166,13 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                     <div
                         style={{
                             backgroundColor: "rgba(220, 38, 38, 0.1)",
-                            border: "1px solid rgba(220, 38, 38, 0.3)",
+                            border: "1px solid var(--color-danger)",
                             borderRadius: "0.5rem",
                             padding: "0.75rem",
                             marginBottom: "1rem",
                         }}
                     >
-                        <p style={{ color: "#fca5a5", fontSize: "0.875rem", margin: 0 }}>{error}</p>
+                        <p style={{ color: "var(--color-danger)", fontSize: "0.875rem", margin: 0 }}>{error}</p>
                     </div>
                 )}
 
@@ -189,9 +180,11 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                 {mode === "login" && (
                     <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                         <div>
-                            <Label htmlFor="login-email" required style={{ color: "var(--color-text-primary)" }}>
+                            <Label htmlFor="login-email" required style={{ color: "var(--color-text-main)" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                    <Mail style={{ width: "1rem", height: "1rem", color: "#61bf7b" }} />
+                                    <Mail
+                                        style={{ width: "1rem", height: "1rem", color: "var(--color-accent-primary)" }}
+                                    />
                                     Email
                                 </div>
                             </Label>
@@ -207,9 +200,11 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                         </div>
 
                         <div>
-                            <Label htmlFor="login-password" required style={{ color: "var(--color-text-primary)" }}>
+                            <Label htmlFor="login-password" required style={{ color: "var(--color-text-main)" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                    <Lock style={{ width: "1rem", height: "1rem", color: "#61bf7b" }} />
+                                    <Lock
+                                        style={{ width: "1rem", height: "1rem", color: "var(--color-accent-primary)" }}
+                                    />
                                     Password
                                 </div>
                             </Label>
@@ -228,7 +223,7 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                             type="submit"
                             style={{
                                 width: "100%",
-                                background: "linear-gradient(135deg, #61bf7b 0%, #509f63 100%)",
+                                background: "var(--color-accent-primary)",
                                 marginTop: "0.5rem",
                             }}
                             disabled={isLoading || !loginEmail || !loginPassword}
@@ -242,9 +237,15 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                 {mode === "register" && (
                     <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                         <div>
-                            <Label htmlFor="register-username" required style={{ color: "var(--color-text-primary)" }}>
+                            <Label htmlFor="register-username" required style={{ color: "var(--color-text-main)" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                    <User style={{ width: "1rem", height: "1rem", color: "#d4a600" }} />
+                                    <User
+                                        style={{
+                                            width: "1rem",
+                                            height: "1rem",
+                                            color: "var(--color-accent-secondary)",
+                                        }}
+                                    />
                                     Username
                                 </div>
                             </Label>
@@ -260,9 +261,15 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                         </div>
 
                         <div>
-                            <Label htmlFor="register-email" required style={{ color: "var(--color-text-primary)" }}>
+                            <Label htmlFor="register-email" required style={{ color: "var(--color-text-main)" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                    <Mail style={{ width: "1rem", height: "1rem", color: "#d4a600" }} />
+                                    <Mail
+                                        style={{
+                                            width: "1rem",
+                                            height: "1rem",
+                                            color: "var(--color-accent-secondary)",
+                                        }}
+                                    />
                                     Email
                                 </div>
                             </Label>
@@ -278,9 +285,15 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                         </div>
 
                         <div>
-                            <Label htmlFor="register-password" required style={{ color: "var(--color-text-primary)" }}>
+                            <Label htmlFor="register-password" required style={{ color: "var(--color-text-main)" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                    <KeyRound style={{ width: "1rem", height: "1rem", color: "#d4a600" }} />
+                                    <KeyRound
+                                        style={{
+                                            width: "1rem",
+                                            height: "1rem",
+                                            color: "var(--color-accent-secondary)",
+                                        }}
+                                    />
                                     Password
                                 </div>
                             </Label>
@@ -299,10 +312,16 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                             <Label
                                 htmlFor="register-confirm-password"
                                 required
-                                style={{ color: "var(--color-text-primary)" }}
+                                style={{ color: "var(--color-text-main)" }}
                             >
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                    <ShieldCheck style={{ width: "1rem", height: "1rem", color: "#d4a600" }} />
+                                    <ShieldCheck
+                                        style={{
+                                            width: "1rem",
+                                            height: "1rem",
+                                            color: "var(--color-accent-secondary)",
+                                        }}
+                                    />
                                     Confirm Password
                                 </div>
                             </Label>
@@ -321,7 +340,7 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                             type="submit"
                             style={{
                                 width: "100%",
-                                background: "linear-gradient(135deg, #d4a600 0%, #b89000 100%)",
+                                background: "var(--color-accent-secondary)",
                                 marginTop: "0.5rem",
                             }}
                             disabled={
@@ -346,7 +365,7 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
                             style={{
                                 background: "none",
                                 border: "none",
-                                color: "rgba(255, 255, 255, 0.5)",
+                                color: "var(--color-text-sub)",
                                 fontSize: "0.875rem",
                                 cursor: "pointer",
                                 textDecoration: "underline",
@@ -360,7 +379,7 @@ export const LoginPage = ({ onLoginSuccess, onSkip }: LoginPageProps) => {
 
                 {/* Footer */}
                 <div style={{ marginTop: "2rem", textAlign: "center" }}>
-                    <p style={{ color: "rgba(255, 255, 255, 0.4)", fontSize: "0.75rem", margin: 0 }}>
+                    <p style={{ color: "var(--color-text-sub)", fontSize: "0.75rem", margin: 0, opacity: 0.6 }}>
                         Your data is encrypted and secure
                     </p>
                 </div>

@@ -31,7 +31,7 @@ type SyncConfigProvider = () => {
 
 /**
  * IndexedDB sync adapter for web platform
- * Orchestrates sync operations between local IndexedDB and qm-center-server
+ * Orchestrates sync operations between local IndexedDB and qm-hub-server
  */
 export class IndexedDBSyncAdapter implements ISyncService {
     private client: QmSyncClient | null = null;

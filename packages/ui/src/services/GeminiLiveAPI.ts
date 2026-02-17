@@ -376,7 +376,7 @@ export class GeminiLiveAPI {
             const data = await response.json();
             const sessionToken = data.session_token;
 
-            // 2. Connect WebSocket via qm-center-server
+            // 2. Connect WebSocket via qm-hub-server
             const wsProtocol = baseUrl.startsWith("https") ? "wss:" : "ws:";
             const wsHost = baseUrl.replace(/^https?:\/\//, "");
             const wsUrl = `${wsProtocol}//${wsHost}${API_ENDPOINTS.WEBSOCKET}?token=${sessionToken}`;

@@ -3,16 +3,17 @@ import { SyncSettings, GeminiSettings } from "@immersive-lang/ui/components/orga
 import { useAuth, useNav } from "@immersive-lang/ui/hooks";
 import { useTheme, type Theme } from "@immersive-lang/ui/contexts";
 import { Button, Card } from "@immersive-lang/ui/components/atoms";
-import { LogIn, LogOut, Moon, Sun, Monitor } from "lucide-react";
+import { LogIn, LogOut, Moon, Sun, Monitor, Terminal } from "lucide-react";
 
 export interface SettingsPageProps {
     onLogout?: () => void;
 }
 
 const THEME_OPTIONS: { value: Theme; label: string; icon: React.ReactNode }[] = [
-    { value: "dark", label: "Dark", icon: <Moon className="w-5 h-5" /> },
     { value: "light", label: "Light", icon: <Sun className="w-5 h-5" /> },
+    { value: "dark", label: "Dark", icon: <Moon className="w-5 h-5" /> },
     { value: "system", label: "System", icon: <Monitor className="w-5 h-5" /> },
+    { value: "cyber", label: "Cyber", icon: <Terminal className="w-5 h-5" /> },
 ];
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
@@ -27,7 +28,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
 
     return (
         <div className="max-w-lg mx-auto space-y-6">
-            {/* Theme Settings */}
+            {/* Appearance Settings */}
             <Card className="mb-6">
                 <div className="p-6">
                     <div className="flex items-center gap-4 mb-4">
@@ -39,14 +40,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
                             <p className="text-sm text-text-sub">Choose your preferred theme</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+
+                    {/* Single 2x2 grid for all themes */}
+                    <div className="grid grid-cols-2 gap-3">
                         {THEME_OPTIONS.map((option) => (
                             <button
                                 key={option.value}
                                 onClick={() => setTheme(option.value)}
-                                className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-200 ${
+                                className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-200 cursor-pointer ${
                                     theme === option.value
-                                        ? "bg-accent-primary text-white shadow-md"
+                                        ? "bg-accent-primary text-white shadow-md ring-2 ring-accent-primary"
                                         : "bg-surface hover:bg-surface-solid text-text-sub hover:text-text-main"
                                 }`}
                             >
@@ -78,18 +81,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
                     </div>
                     {isAuthenticated ? (
                         <div>
-                            {status?.email && (
-                                <div className="mb-3">
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-0.5">Email</p>
-                                    <p className="text-base font-medium">{status.email}</p>
-                                </div>
-                            )}
-                            {status?.username && (
-                                <div className="mb-3">
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-0.5">Username</p>
-                                    <p className="text-base font-medium">{status.username}</p>
-                                </div>
-                            )}
                             <Button
                                 variant="ghost"
                                 className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"

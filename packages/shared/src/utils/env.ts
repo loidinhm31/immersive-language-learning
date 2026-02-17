@@ -86,7 +86,7 @@ class EnvironmentManager {
     }
 
     /**
-     * Get the server URL (qm-center-server)
+     * Get the server URL (qm-hub-server)
      */
     get apiBaseUrl(): string {
         return this.get("VITE_QM_CENTER_SERVER_URL");

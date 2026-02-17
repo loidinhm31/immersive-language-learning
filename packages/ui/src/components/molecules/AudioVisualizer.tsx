@@ -17,11 +17,6 @@ const ROLE_COLORS = {
     ai: "#fbbf24", // amber-400
 };
 
-const ROLE_GRADIENTS = {
-    user: ["rgba(45, 212, 191, 0)", "#2dd4bf", "rgba(45, 212, 191, 0)"],
-    ai: ["rgba(251, 191, 36, 0)", "#fbbf24", "rgba(251, 191, 36, 0)"],
-};
-
 const VAD_THRESHOLD = 0.01; // Lower threshold slightly for better reactivity
 const GLOW_LERP_FACTOR = 0.1; // Smoother glow
 
@@ -127,13 +122,6 @@ export function AudioVisualizer({
 
         // Setup base styles
         const lineColor = role ? ROLE_COLORS[role] : color || "#ffffff";
-        const gradientColors = role ? ROLE_GRADIENTS[role] : ["transparent", lineColor, "transparent"];
-
-        // Create Gradient
-        const gradient = ctx.createLinearGradient(0, 0, width, 0);
-        gradient.addColorStop(0, gradientColors[0]);
-        gradient.addColorStop(0.5, gradientColors[1]);
-        gradient.addColorStop(1, gradientColors[2]);
 
         // Apply Glow
         const glowAmount = glowIntensityRef.current;
@@ -145,7 +133,7 @@ export function AudioVisualizer({
         }
 
         ctx.lineWidth = 2 + glowAmount * 2;
-        ctx.strokeStyle = gradient;
+        ctx.strokeStyle = lineColor;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 

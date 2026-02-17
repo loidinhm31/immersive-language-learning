@@ -14,7 +14,7 @@ export interface QmServerAuthConfig {
 }
 
 /**
- * API response wrapper from qm-center-server
+ * API response wrapper from qm-hub-server
  */
 interface ApiResponse<T> {
     success: boolean;
@@ -42,7 +42,7 @@ function getDefaultApiKey(): string {
 
 /**
  * Shared adapter for auth APIs
- * Calls qm-center-server directly - works in both Tauri webview and browser
+ * Calls qm-hub-server directly - works in both Tauri webview and browser
  * Stores tokens in localStorage (for http) - note: less secure than Tauri's encrypted storage
  */
 export class QmServerAuthAdapter implements IAuthService {

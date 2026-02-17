@@ -56,8 +56,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                 <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{
-                        background:
-                            "linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%)",
+                        backgroundColor: "var(--color-primary-500)",
                         boxShadow: "0 4px 12px rgba(163, 177, 138, 0.3)",
                     }}
                 >
@@ -86,7 +85,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                                         isCollapsed ? "px-0 justify-center" : "px-4"
                                     } ${
                                         isActive
-                                            ? "bg-gradient-to-br from-primary-500 to-secondary-500 text-white shadow-[0_4px_12px_rgba(163,177,138,0.3)]"
+                                            ? "bg-primary-500 text-white shadow-[0_4px_12px_rgba(163,177,138,0.3)]"
                                             : "text-text-sub hover:bg-white/10"
                                     }`}
                                 >

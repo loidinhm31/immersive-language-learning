@@ -516,10 +516,17 @@ export function AppShell({ skipAuth: _skipAuth = false, embedded = false, onLogo
     const [isCollapsed, setIsCollapsed] = useState(false);
     const isMobile = useIsMobile();
     const location = useLocation();
+    const { basePath } = useNav();
+
+    // Strip basePath from pathname for route checking (handles both standalone and embedded modes)
+    const relativePath =
+        basePath && location.pathname.startsWith(basePath)
+            ? location.pathname.slice(basePath.length) || "/"
+            : location.pathname;
 
     // Check if current route is immersive (should hide nav)
     const isImmersiveRoute = IMMERSIVE_ROUTES.some(
-        (route) => location.pathname === route || location.pathname.startsWith("/chat"),
+        (route) => relativePath === route || relativePath.startsWith("/chat"),
     );
     const shouldShowNav = !isImmersiveRoute;
 
@@ -532,7 +539,7 @@ export function AppShell({ skipAuth: _skipAuth = false, embedded = false, onLogo
 
     return (
         <AppShellContextInternal.Provider value={{ onLogoutRequest: handleLogout, embedded }}>
-            <div className="min-h-screen relative overflow-hidden" style={{ background: "var(--bg-gradient)" }}>
+            <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: "var(--color-bg)" }}>
                 {/* Sidebar - desktop only, hidden on immersive routes */}
                 {shouldShowNav && (
                     <Sidebar isCollapsed={isCollapsed} onToggleCollapse={() => setIsCollapsed((prev) => !prev)} />

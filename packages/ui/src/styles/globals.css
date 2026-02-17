@@ -1,10 +1,17 @@
 @import "tailwindcss";
 
+@import "@fontsource/jetbrains-mono/300.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
 @source "../**/*.{ts,tsx}";
 
 /* Custom theme variants */
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant light (&:where(.light-mode, .light-mode *));
+@custom-variant cyber (&:where(.cyber, .cyber *, [data-theme="cyber"], [data-theme="cyber"] *));
 
 /* Tailwind v4 Theme Configuration */
 @theme {
@@ -69,7 +76,7 @@
   /* Glass Effects - in @theme for utility class generation */
   --glass-bg: rgba(22, 24, 34, 0.6);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --bg-gradient: linear-gradient(to bottom right, #0a0b10, #161822, #0a0b10);
+  --bg-gradient: var(--color-bg-dark);
 
   /* Border colors */
   --color-border-light: rgba(255, 255, 255, 0.08);
@@ -107,6 +114,53 @@
   --color-surface-solid: var(--color-surface-solid-dark);
   --color-accent-primary: var(--color-primary-400);
   --color-accent-secondary: var(--color-secondary-400);
+
+  /* === CYBER THEME TOKENS === */
+
+  /* Cyber Fonts */
+  --font-family-cyber-mono: 'JetBrains Mono', 'Cascadia Code', 'Source Code Pro', ui-monospace, monospace;
+
+  /* Cyber Background Colors - robo-control-app dark mode */
+  --color-cyber-bg: hsl(220, 25%, 15%);
+  --color-cyber-bg-card: hsl(220, 20%, 20%);
+  --color-cyber-bg-muted: hsl(220, 20%, 25%);
+
+  /* Cyber Primary (Bright Cyan - robo-control-app primary) */
+  --color-cyber-primary: hsl(189, 94%, 43%);
+  --color-cyber-primary-hover: hsl(189, 94%, 53%);
+  --color-cyber-primary-foreground: hsl(0, 0%, 100%);
+
+  /* Cyber Accent Colors - robo-control-app palette */
+  --color-cyber-cyan: hsl(189, 94%, 43%);
+  --color-cyber-cyan-light: hsl(186, 77%, 77%);
+  --color-cyber-blue: hsl(189, 94%, 50%);
+  --color-cyber-green: hsl(142, 71%, 45%);
+  --color-cyber-yellow: hsl(45, 93%, 67%);
+  --color-cyber-orange: hsl(24, 95%, 60%);
+  --color-cyber-pink: hsl(340, 75%, 65%);
+  --color-cyber-red: hsl(0, 62%, 50%);
+  --color-cyber-purple: hsl(280, 70%, 60%);
+
+  /* Cyber Text Colors */
+  --color-cyber-text-primary: hsl(0, 0%, 98%);
+  --color-cyber-text-secondary: hsl(220, 10%, 65%);
+  --color-cyber-text-muted: hsl(220, 10%, 50%);
+
+  /* Cyber Functional Colors */
+  --color-cyber-success: hsl(142, 71%, 45%);
+  --color-cyber-warning: hsl(24, 95%, 60%);
+  --color-cyber-danger: hsl(0, 62%, 50%);
+  --color-cyber-info: hsl(189, 94%, 43%);
+
+  /* Cyber Glass Effects - Glassmorphic backdrop */
+  --color-cyber-glass-bg: rgba(42, 49, 64, 0.6);
+  --color-cyber-glass-border: rgba(255, 255, 255, 0.2);
+  --color-cyber-glass-glow: rgba(5, 168, 219, 0.15);
+
+  /* Cyber Animations */
+  --animate-cyber-glow: cyberGlow 2s ease-in-out infinite alternate;
+  --animate-cyber-scanline: scanline 8s linear infinite;
+  --animate-cyber-pulse-slow: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @layer base {
@@ -150,7 +204,7 @@
     --color-accent-glow: rgba(163, 177, 138, 0.15);
     --glass-bg: rgba(22, 24, 34, 0.6);
     --glass-border: rgba(255, 255, 255, 0.08);
-    --bg-gradient: linear-gradient(to bottom right, #0a0b10, #161822, #0a0b10);
+    --bg-gradient: var(--color-bg-dark);
     --color-border-light: rgba(255, 255, 255, 0.08);
     --texture-opacity: 0.03;
     --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
@@ -170,11 +224,53 @@
     --color-accent-glow: rgba(92, 107, 72, 0.2);
     --glass-bg: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(0, 0, 0, 0.08);
-    --bg-gradient: linear-gradient(to bottom right, #f5f2eb, #ebe6dc, #f5f2eb);
+    --bg-gradient: var(--color-bg-light);
     --color-border-light: rgba(0, 0, 0, 0.08);
     --texture-opacity: 0.15;
     --shadow-sm: 0 4px 6px -1px rgba(44, 36, 32, 0.1);
     --shadow-md: 0 10px 30px -5px rgba(44, 36, 32, 0.12);
+  }
+
+  /* === CYBER THEME (Always Dark) === */
+  .cyber,
+  [data-theme="cyber"] {
+    /* Backgrounds - Match robo-control-app glassmorphic dark mode */
+    --color-bg: hsl(220, 25%, 15%);
+    --color-surface: rgba(42, 49, 64, 0.6);
+    --color-surface-solid: hsl(220, 20%, 20%);
+
+    /* Text - High contrast */
+    --color-text-main: hsl(0, 0%, 98%);
+    --color-text-sub: hsl(220, 10%, 65%);
+
+    /* Primary - Bright Cyan (robo-control-app primary) */
+    --color-accent-primary: hsl(189, 94%, 43%);
+    --color-accent-secondary: hsl(24, 95%, 60%);
+    --color-accent-glow: rgba(5, 168, 219, 0.15);
+
+    /* Glass effects - Glassmorphic backdrop */
+    --glass-bg: rgba(42, 49, 64, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --bg-gradient: var(--color-cyber-bg);
+    --color-border-light: hsl(220, 20%, 30%);
+
+    /* Shadows with cyan glow */
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 40px rgba(5, 168, 219, 0.1);
+    --shadow-glow: 0 0 20px rgba(5, 168, 219, 0.2), 0 0 40px rgba(5, 168, 219, 0.1);
+
+    /* Functional colors - Match robo-control-app */
+    --color-success: hsl(142, 71%, 45%);
+    --color-warning: hsl(24, 95%, 60%);
+    --color-danger: hsl(0, 62%, 50%);
+    --color-info: hsl(189, 94%, 43%);
+
+    /* Fonts - Monospace for cyber aesthetic */
+    --font-family-heading: var(--font-family-cyber-mono);
+    --font-family-body: var(--font-family-cyber-mono);
+    --font-family-sans: var(--font-family-cyber-mono);
+
+    --texture-opacity: 0.02;
   }
 }
 
@@ -295,13 +391,6 @@ button {
   animation: fadeIn 0.7s ease-out forwards;
 }
 
-/* Gradient Text */
-.gradient-text {
-  background: linear-gradient(135deg, var(--color-text-main) 30%, var(--color-accent-primary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
 
 /* Focus Styles for Accessibility */
 button:focus-visible,
@@ -342,4 +431,149 @@ button, a, input, select, textarea {
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
+}
+
+/* === CYBER THEME KEYFRAMES === */
+@keyframes cyberGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(5, 168, 219, 0.3), 0 0 10px rgba(5, 168, 219, 0.15);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(5, 168, 219, 0.5), 0 0 20px rgba(5, 168, 219, 0.25);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* === CYBER THEME UTILITY CLASSES === */
+
+/* Glass card - Glassmorphic robo-control style */
+.cyber-glass-card {
+  background-color: var(--color-cyber-glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-cyber-glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--color-cyber-glass-glow);
+  border-radius: 0.5rem;
+}
+
+/* Grid background pattern with cyan */
+.cyber-grid-pattern {
+  background-color: var(--color-cyber-bg);
+  background-image:
+    linear-gradient(rgba(5, 168, 219, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(5, 168, 219, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Scanline effect with cyan */
+.cyber-scanline-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-scanline-effect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: rgba(5, 168, 219, 0.2);
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+}
+
+/* Terminal-style input with glassmorphic effect */
+.cyber-glass-input {
+  background-color: rgba(42, 49, 64, 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-cyber-glass-border);
+  color: var(--color-cyber-text-primary);
+  font-family: var(--font-family-cyber-mono);
+  font-size: 0.875rem;
+  transition: all 200ms;
+}
+
+.cyber-glass-input::placeholder {
+  color: var(--color-cyber-text-muted);
+}
+
+.cyber-glass-input:focus {
+  border-color: var(--color-cyber-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(5, 168, 219, 0.3);
+  background-color: rgba(42, 49, 64, 0.6);
+}
+
+/* Status glow variants - robo-control-app colors */
+.cyber-status-glow-green {
+  box-shadow: 0 0 12px hsl(142, 71%, 45%, 0.6), 0 0 4px hsl(142, 71%, 45%, 0.4);
+}
+
+.cyber-status-glow-cyan {
+  box-shadow: 0 0 12px hsl(189, 94%, 43%, 0.6), 0 0 4px hsl(189, 94%, 43%, 0.4);
+}
+
+.cyber-status-glow-red {
+  box-shadow: 0 0 12px hsl(0, 62%, 50%, 0.6), 0 0 4px hsl(0, 62%, 50%, 0.4);
+}
+
+.cyber-status-glow-orange {
+  box-shadow: 0 0 12px hsl(24, 95%, 60%, 0.6), 0 0 4px hsl(24, 95%, 60%, 0.4);
+}
+
+.cyber-status-glow-yellow {
+  box-shadow: 0 0 12px hsl(45, 93%, 67%, 0.6), 0 0 4px hsl(45, 93%, 67%, 0.4);
+}
+
+/* Code block styling */
+.cyber-code-block {
+  background-color: #020617;
+  border: 1px solid var(--color-cyber-bg-card);
+  border-radius: 0.25rem;
+  font-family: var(--font-family-cyber-mono);
+  font-size: 0.75rem;
+  padding: 0.75rem;
+  color: #CBD5E1;
+  overflow-x: auto;
+}
+
+/* Monospace utility */
+.cyber-font-mono {
+  font-family: var(--font-family-cyber-mono);
+}
+
+/* Cyber animation utilities */
+.cyber-animate-glow {
+  animation: cyberGlow 2s ease-in-out infinite alternate;
+}
+
+.cyber-animate-pulse-slow {
+  animation: pulseSlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Cyber background with cyan grid */
+.cyber-gradient-bg {
+  background-color: var(--color-cyber-bg);
+  background-image:
+    linear-gradient(rgba(5, 168, 219, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(5, 168, 219, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
 }

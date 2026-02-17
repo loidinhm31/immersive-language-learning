@@ -1,13 +1,12 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { STORAGE_KEYS } from "@immersive-lang/shared";
 
-export type Theme = "dark" | "light" | "system";
+export type Theme = "light" | "dark" | "system" | "cyber";
 
 interface ThemeContextValue {
     theme: Theme;
     setTheme: (theme: Theme) => void;
-    cycleTheme: () => void;
-    resolvedTheme: "dark" | "light";
+    resolvedTheme: "light" | "dark" | "cyber";
     embedded: boolean;
 }
 
@@ -47,13 +46,38 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
     const [theme, setThemeState] = useState<Theme>(() => {
         if (typeof window === "undefined") return defaultTheme;
-        return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+
+        // Try new single-key format first
+        const stored = localStorage.getItem(storageKey) as Theme;
+        if (stored === "light" || stored === "dark" || stored === "system" || stored === "cyber") {
+            return stored;
+        }
+
+        // Migrate from old two-key format
+        const oldMode = localStorage.getItem("immersive-lang-theme");
+        const oldVariant = localStorage.getItem("immersive-lang-theme-variant");
+
+        if (oldVariant === "cyber") {
+            // Cyber variant always maps to cyber theme
+            localStorage.removeItem("immersive-lang-theme");
+            localStorage.removeItem("immersive-lang-theme-variant");
+            return "cyber";
+        }
+
+        // Mystic variant maps to light/dark/system
+        if (oldMode === "light" || oldMode === "dark" || oldMode === "system") {
+            localStorage.removeItem("immersive-lang-theme-variant");
+            return oldMode;
+        }
+
+        return defaultTheme;
     });
 
-    const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light">("dark");
+    const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark" | "cyber">("dark");
 
     // Resolve the actual theme based on system preference
-    const resolveTheme = useCallback((currentTheme: Theme): "dark" | "light" => {
+    const resolveTheme = useCallback((currentTheme: Theme): "light" | "dark" | "cyber" => {
+        if (currentTheme === "cyber") return "cyber";
         if (currentTheme === "system") {
             return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
@@ -62,7 +86,7 @@ export function ThemeProvider({
 
     // Apply theme - either to document or via custom event
     const applyTheme = useCallback(
-        (resolved: "dark" | "light") => {
+        (resolved: "light" | "dark" | "cyber") => {
             setResolvedTheme(resolved);
 
             if (embedded) {
@@ -73,20 +97,22 @@ export function ThemeProvider({
                     }),
                 );
             } else {
-                // Apply to document.documentElement (cham-lang pattern)
+                // Apply to document.documentElement
                 const root = document.documentElement;
 
-                // Set data-theme attribute for CSS selectors
+                // Set data attribute for CSS selectors
                 root.setAttribute("data-theme", resolved);
 
                 // Remove all theme classes before adding new one
-                root.classList.remove("light-mode", "dark");
+                root.classList.remove("light-mode", "dark", "cyber");
 
                 // Add appropriate class
                 if (resolved === "light") {
                     root.classList.add("light-mode");
-                } else {
+                } else if (resolved === "dark") {
                     root.classList.add("dark");
+                } else {
+                    root.classList.add("cyber");
                 }
             }
         },
@@ -102,14 +128,6 @@ export function ThemeProvider({
         },
         [applyTheme, resolveTheme, storageKey],
     );
-
-    // Cycle through themes: dark -> light -> system -> dark
-    const cycleTheme = useCallback(() => {
-        const modes: Theme[] = ["dark", "light", "system"];
-        const currentIdx = modes.indexOf(theme);
-        const nextIdx = (currentIdx + 1) % modes.length;
-        setTheme(modes[nextIdx]);
-    }, [theme, setTheme]);
 
     // Initial theme application and system preference listener
     useEffect(() => {
@@ -127,9 +145,7 @@ export function ThemeProvider({
     }, [theme, applyTheme, resolveTheme]);
 
     return (
-        <ThemeContext.Provider value={{ theme, setTheme, cycleTheme, resolvedTheme, embedded }}>
-            {children}
-        </ThemeContext.Provider>
+        <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme, embedded }}>{children}</ThemeContext.Provider>
     );
 }
 

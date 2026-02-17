@@ -1,4 +1,4 @@
-// Re-export sync protocol types from @qm-center/sync-client-types (single source of truth)
+// Re-export sync protocol types from @qm-hub/sync-client-types (single source of truth)
 export type {
     SyncRecord,
     Checkpoint,
@@ -16,16 +16,16 @@ export type {
     HttpResponse,
     SyncClientConfig,
     RefreshResponse,
-} from "@qm-center/sync-client-types";
+} from "@qm-hub/sync-client-types";
 
 // Re-export helper functions
-export { createAuthHeaders, withBearer, createSyncClientConfig, initialCheckpoint } from "@qm-center/sync-client-types";
+export { createAuthHeaders, withBearer, createSyncClientConfig, initialCheckpoint } from "@qm-hub/sync-client-types";
 
 // Re-export client implementation for TypeScript/JavaScript apps
-export { QmSyncClient, fetchHttpClient, type HttpClientFn } from "@qm-center/sync-client-types";
+export { QmSyncClient, fetchHttpClient, type HttpClientFn } from "@qm-hub/sync-client-types";
 
 // =============================================================================
-// App-specific types (not in @qm-center/sync-client-types)
+// App-specific types (not in @qm-hub/sync-client-types)
 // =============================================================================
 
 /**
@@ -42,7 +42,7 @@ export interface SyncStatus {
 
 /**
  * Result of a sync operation.
- * Extends @qm-center/sync-client-types SyncResult with app-specific syncedAt field.
+ * Extends @qm-hub/sync-client-types SyncResult with app-specific syncedAt field.
  */
 export interface SyncResult {
     pushed: number; // Number of records pushed to server

@@ -307,7 +307,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
                     setPlayerGainNode(null);
                 };
 
-                // Connect via qm-center-server (JWT auth for session token)
+                // Connect via qm-hub-server (JWT auth for session token)
                 // Read token from localStorage if not explicitly provided
                 const resolvedToken = jwtToken ?? localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN) ?? undefined;
 

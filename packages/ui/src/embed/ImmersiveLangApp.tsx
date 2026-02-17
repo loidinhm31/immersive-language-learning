@@ -17,7 +17,7 @@ import { AppShell } from "@immersive-lang/ui/components/templates";
 export interface ImmersiveLangAppProps {
     className?: string;
     useRouter?: boolean;
-    /** Auth tokens when embedded in qm-center */
+    /** Auth tokens when embedded in qm-hub */
     authTokens?: {
         accessToken: string;
         refreshToken: string;
@@ -67,7 +67,7 @@ export const ImmersiveLangApp: React.FC<ImmersiveLangAppProps> = ({
         return getAllServices();
     }, []);
 
-    // Inject auth tokens when embedded (SSO from qm-center)
+    // Inject auth tokens when embedded (SSO from qm-hub)
     useEffect(() => {
         if (authTokens?.accessToken && authTokens?.refreshToken && authTokens?.userId) {
             platform.auth.saveTokensExternal?.(authTokens.accessToken, authTokens.refreshToken, authTokens.userId);

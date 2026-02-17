@@ -61,7 +61,7 @@ function ScoreDisplay({ score }: { score: string }) {
 
 function BuildYourOwnSection() {
     return (
-        <div className="mt-2 mb-8 p-8 rounded-2xl text-center border border-dashed border-accent-primary bg-gradient-to-br from-accent-primary/10 to-accent-secondary/10">
+        <div className="mt-2 mb-8 p-8 rounded-2xl text-center border border-dashed border-accent-primary bg-accent-primary/10">
             <h3 className="mb-2 text-accent-primary font-heading">Build Your Own Version</h3>
             <p className="mb-6 opacity-80 leading-relaxed text-text-sub">Add more missions or features</p>
             <a

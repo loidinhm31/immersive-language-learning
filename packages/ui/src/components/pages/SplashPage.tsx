@@ -100,11 +100,8 @@ export function SplashPage({ onStart }: SplashPageProps) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7 }}
-                    className="font-extrabold tracking-tight leading-normal mb-2 px-4 pb-[0.3em] text-center"
+                    className="font-extrabold tracking-tight leading-normal mb-2 px-4 pb-[0.3em] text-center text-accent-primary"
                     style={{
-                        background: "linear-gradient(135deg, var(--color-text-main) 30%, var(--color-accent-primary))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
                         filter: "drop-shadow(0 0 30px rgba(163, 177, 138, 0.2))",
                         fontSize: "clamp(2rem, 6vw, 4rem)",
                     }}
