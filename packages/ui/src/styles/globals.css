@@ -176,6 +176,12 @@
     --color-accent-glow: rgba(163, 177, 138, 0.15);
     --texture-opacity: 0.03;
 
+    /* Standard cross-app variable aliases (matches cham-lang pattern) */
+    --color-bg-app: var(--color-bg-dark);
+    --color-bg-light: var(--color-bg-dark);
+    --color-bg-white: var(--color-surface-solid-dark);
+    --color-primary-500: var(--color-accent-primary);
+
     /* Spacing */
     --spacing-xs: 4px;
     --spacing-sm: 8px;
@@ -209,12 +215,18 @@
     --texture-opacity: 0.03;
     --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+
+    /* Standard cross-app variable aliases */
+    --color-bg-app: var(--color-bg-dark);
+    --color-bg-light: var(--color-bg-dark);
+    --color-bg-white: var(--color-surface-solid-dark);
+    --color-primary-500: var(--color-accent-primary);
   }
 
   /* Light theme */
   .light-mode,
   [data-theme="light"] {
-    --color-bg: var(--color-bg-light);
+    --color-bg: #f5f2eb;
     --color-surface: var(--color-surface-light);
     --color-surface-solid: var(--color-surface-solid-light);
     --color-text-main: #2c2420;
@@ -224,11 +236,19 @@
     --color-accent-glow: rgba(92, 107, 72, 0.2);
     --glass-bg: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(0, 0, 0, 0.08);
-    --bg-gradient: var(--color-bg-light);
+    --bg-gradient: #f5f2eb;
     --color-border-light: rgba(0, 0, 0, 0.08);
     --texture-opacity: 0.15;
     --shadow-sm: 0 4px 6px -1px rgba(44, 36, 32, 0.1);
     --shadow-md: 0 10px 30px -5px rgba(44, 36, 32, 0.12);
+
+    /* Standard cross-app variable aliases */
+    --color-bg-app: #f5f2eb;
+    --color-bg-light: #f5f2eb;
+    --color-bg-white: var(--color-surface-solid-light);
+    --color-text-primary: #2c2420;
+    --color-text-secondary: #5e5048;
+    --color-primary-500: var(--color-accent-primary);
   }
 
   /* === CYBER THEME (Always Dark) === */
@@ -271,6 +291,14 @@
     --font-family-sans: var(--font-family-cyber-mono);
 
     --texture-opacity: 0.02;
+
+    /* Standard cross-app variable aliases */
+    --color-bg-app: hsl(220, 25%, 15%);
+    --color-bg-light: hsl(220, 25%, 15%);
+    --color-bg-white: hsl(220, 20%, 20%);
+    --color-text-primary: hsl(0, 0%, 98%);
+    --color-text-secondary: hsl(220, 10%, 65%);
+    --color-primary-500: var(--color-accent-primary);
   }
 }
 

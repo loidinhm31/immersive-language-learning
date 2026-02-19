@@ -65,14 +65,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
             <Card className="mb-6">
                 <div className="p-6">
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-                            <LogIn className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        <div className="p-3 bg-(--color-accent-primary)/10 rounded-full">
+                            <LogIn className="w-6 h-6 text-(--color-accent-primary)" />
                         </div>
                         <div>
                             <h3 className="text-lg font-semibold">
                                 {isAuthenticated ? "Account" : "Login to connect to server"}
                             </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-(--color-text-sub)">
                                 {isAuthenticated
                                     ? "Manage your account connection"
                                     : "Connect your account to sync data across devices"}
@@ -83,7 +83,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
                         <div>
                             <Button
                                 variant="ghost"
-                                className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                className="w-full text-red-500 hover:text-red-600 hover:bg-red-500/10"
                                 onClick={handleLogout}
                             >
                                 <LogOut className="w-4 h-4 mr-2" />

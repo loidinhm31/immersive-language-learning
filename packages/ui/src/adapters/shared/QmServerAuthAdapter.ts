@@ -11,6 +11,7 @@ export interface QmServerAuthConfig {
     baseUrl?: string;
     appId?: string;
     apiKey?: string;
+    apiBasePath?: string;
 }
 
 /**
@@ -49,6 +50,7 @@ export class QmServerAuthAdapter implements IAuthService {
     private baseUrl: string;
     private appId: string;
     private apiKey: string;
+    private apiBasePath: string;
 
     // Cache for getStatus() to prevent multiple server calls
     private statusCache: AuthStatus | null = null;
@@ -69,6 +71,7 @@ export class QmServerAuthAdapter implements IAuthService {
             this.apiKey = config?.apiKey || getDefaultApiKey();
         }
 
+        this.apiBasePath = config?.apiBasePath ?? "/api/v1";
         serviceLogger.qmServer(`Initialized with baseUrl: ${this.baseUrl}`);
     }
 
@@ -202,7 +205,7 @@ export class QmServerAuthAdapter implements IAuthService {
     async register(username: string, email: string, password: string): Promise<AuthResponse> {
         try {
             const response = await this.post<{ username: string; email: string; password: string }, AuthResponse>(
-                "/api/v1/auth/register",
+                `${this.apiBasePath}/auth/register`,
                 { username, email, password },
             );
 
@@ -218,10 +221,13 @@ export class QmServerAuthAdapter implements IAuthService {
 
     async login(email: string, password: string): Promise<AuthResponse> {
         try {
-            const response = await this.post<{ email: string; password: string }, AuthResponse>("/api/v1/auth/login", {
-                email,
-                password,
-            });
+            const response = await this.post<{ email: string; password: string }, AuthResponse>(
+                `${this.apiBasePath}/auth/login`,
+                {
+                    email,
+                    password,
+                },
+            );
 
             // Store auth data
             this.storeAuthData(response);
@@ -258,7 +264,7 @@ export class QmServerAuthAdapter implements IAuthService {
 
         try {
             const response = await this.post<{ refreshToken: string }, { accessToken: string; refreshToken: string }>(
-                "/api/v1/auth/refresh",
+                `${this.apiBasePath}/auth/refresh`,
                 { refreshToken },
             );
 
@@ -332,7 +338,7 @@ export class QmServerAuthAdapter implements IAuthService {
                 email: string;
                 apps: string[];
                 isAdmin: boolean;
-            }>("/api/v1/auth/me", true);
+            }>(`${this.apiBasePath}/auth/me`, true);
 
             const status: AuthStatus = {
                 isAuthenticated: true,
