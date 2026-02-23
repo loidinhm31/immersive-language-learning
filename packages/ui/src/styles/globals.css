@@ -10,7 +10,7 @@
 
 /* Custom theme variants */
 @custom-variant dark (&:where(.dark, .dark *));
-@custom-variant light (&:where(.light-mode, .light-mode *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 @custom-variant cyber (&:where(.cyber, .cyber *, [data-theme="cyber"], [data-theme="cyber"] *));
 
 /* Tailwind v4 Theme Configuration */

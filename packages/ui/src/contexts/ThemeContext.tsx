@@ -3,14 +3,13 @@ import { STORAGE_KEYS } from "@immersive-lang/shared";
 
 export type Theme = "light" | "dark" | "system" | "cyber";
 
-interface ThemeContextValue {
+interface ThemeContextType {
     theme: Theme;
     setTheme: (theme: Theme) => void;
     resolvedTheme: "light" | "dark" | "cyber";
-    embedded: boolean;
 }
 
-const ThemeContext = createContext<ThemeContextValue | null>(null);
+const ThemeContext = createContext<ThemeContextType | null>(null);
 
 interface ThemeProviderProps {
     children: ReactNode;
@@ -104,14 +103,12 @@ export function ThemeProvider({
                 root.setAttribute("data-theme", resolved);
 
                 // Remove all theme classes before adding new one
-                root.classList.remove("light-mode", "dark", "cyber");
+                root.classList.remove("dark", "cyber");
 
-                // Add appropriate class
-                if (resolved === "light") {
-                    root.classList.add("light-mode");
-                } else if (resolved === "dark") {
+                // Add appropriate class (no class for light — CSS default or [data-theme="light"] handles it)
+                if (resolved === "dark") {
                     root.classList.add("dark");
-                } else {
+                } else if (resolved === "cyber") {
                     root.classList.add("cyber");
                 }
             }
@@ -144,12 +141,10 @@ export function ThemeProvider({
         return () => mediaQuery.removeEventListener("change", handleChange);
     }, [theme, applyTheme, resolveTheme]);
 
-    return (
-        <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme, embedded }}>{children}</ThemeContext.Provider>
-    );
+    return <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>{children}</ThemeContext.Provider>;
 }
 
-export function useTheme(): ThemeContextValue {
+export function useTheme(): ThemeContextType {
     const context = useContext(ThemeContext);
     if (!context) {
         throw new Error("useTheme must be used within a ThemeProvider");

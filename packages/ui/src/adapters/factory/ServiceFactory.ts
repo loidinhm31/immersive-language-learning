@@ -11,6 +11,7 @@
 import type { IAuthService } from "@immersive-lang/ui/adapters/factory/interfaces";
 import type { ISyncService } from "@immersive-lang/ui/adapters/factory/interfaces";
 import type { ISessionHistoryService, IStorageService } from "@immersive-lang/ui/adapters";
+import { serviceLogger } from "@immersive-lang/ui/utils";
 
 // Singleton instances (set via setters)
 let authService: IAuthService | null = null;
@@ -25,6 +26,7 @@ let sessionHistoryService: ISessionHistoryService | null = null;
  */
 export const setAuthService = (service: IAuthService): void => {
     authService = service;
+    serviceLogger.factory("Set AuthService");
 };
 
 /**
@@ -32,6 +34,7 @@ export const setAuthService = (service: IAuthService): void => {
  */
 export const setSyncService = (service: ISyncService): void => {
     syncService = service;
+    serviceLogger.factory("Set SyncService");
 };
 
 /**
@@ -39,6 +42,7 @@ export const setSyncService = (service: ISyncService): void => {
  */
 export const setStorageService = (service: IStorageService): void => {
     storageService = service;
+    serviceLogger.factory("Set StorageService");
 };
 
 /**
@@ -46,6 +50,7 @@ export const setStorageService = (service: IStorageService): void => {
  */
 export const setSessionHistoryService = (service: ISessionHistoryService): void => {
     sessionHistoryService = service;
+    serviceLogger.factory("Set SessionHistoryService");
 };
 
 // ============= Getters =============
@@ -115,6 +120,7 @@ export const resetServices = (): void => {
     syncService = null;
     storageService = null;
     sessionHistoryService = null;
+    serviceLogger.factory("Reset all services");
 };
 
 /**

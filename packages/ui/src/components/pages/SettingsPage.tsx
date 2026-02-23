@@ -17,7 +17,7 @@ const THEME_OPTIONS: { value: Theme; label: string; icon: React.ReactNode }[] = 
 ];
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
-    const { nav } = useNav();
+    const { navigate } = useNav();
     const { isAuthenticated, status, logout } = useAuth();
     const { theme, setTheme } = useTheme();
 
@@ -91,7 +91,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
                             </Button>
                         </div>
                     ) : (
-                        <Button variant="primary" className="w-full" onClick={() => nav("/login")}>
+                        <Button variant="primary" className="w-full" onClick={() => navigate("/login")}>
                             <LogIn className="w-4 h-4 mr-2" />
                             Login / Register
                         </Button>

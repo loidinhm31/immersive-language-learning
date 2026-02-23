@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, History, type LucideIcon, Settings, Target, Sparkles } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useNav } from "@immersive-lang/ui/hooks";
 
 interface NavItem {
@@ -12,6 +12,7 @@ interface NavItem {
 export interface SidebarProps {
     isCollapsed: boolean;
     onToggleCollapse: () => void;
+    className?: string;
 }
 
 const navItems: NavItem[] = [
@@ -21,17 +22,7 @@ const navItems: NavItem[] = [
 ];
 
 export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
-    const location = useLocation();
-    const { to, nav: navigate } = useNav();
-
-    // Check if the current path matches or starts with the nav item path
-    const isPathActive = (navPath: string) => {
-        const fullPath = to(navPath);
-        if (navPath === "/missions") {
-            return location.pathname === fullPath || location.pathname === to("/");
-        }
-        return location.pathname === fullPath || location.pathname.startsWith(fullPath);
-    };
+    const { to } = useNav();
 
     return (
         <aside
@@ -73,40 +64,45 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
             <nav className="flex-1 px-3 py-4">
                 <ul className="space-y-1">
                     {navItems.map((item) => {
-                        const isActive = isPathActive(item.path);
                         const Icon = item.icon;
 
                         return (
                             <li key={item.id}>
-                                <button
-                                    onClick={() => navigate(item.path)}
+                                <NavLink
+                                    to={to(item.path)}
                                     title={isCollapsed ? item.label : undefined}
-                                    className={`w-full flex items-center gap-3 py-3 rounded-xl transition-all duration-200 group ${
-                                        isCollapsed ? "px-0 justify-center" : "px-4"
-                                    } ${
-                                        isActive
-                                            ? "bg-primary-500 text-white shadow-[0_4px_12px_rgba(163,177,138,0.3)]"
-                                            : "text-text-sub hover:bg-white/10"
-                                    }`}
+                                    className={({ isActive }) =>
+                                        `w-full flex items-center gap-3 py-3 rounded-xl transition-all duration-200 group ${
+                                            isCollapsed ? "px-0 justify-center" : "px-4"
+                                        } ${
+                                            isActive
+                                                ? "bg-primary-500 text-white shadow-[0_4px_12px_rgba(163,177,138,0.3)]"
+                                                : "text-text-sub hover:bg-white/10"
+                                        }`
+                                    }
                                 >
-                                    <Icon
-                                        className={`w-5 h-5 flex-shrink-0 transition-all ${
-                                            isActive ? "stroke-[2.5]" : "stroke-2 group-hover:stroke-[2.5]"
-                                        }`}
-                                    />
-                                    {!isCollapsed && (
+                                    {({ isActive }) => (
                                         <>
-                                            <span
-                                                className={`text-sm whitespace-nowrap ${isActive ? "font-bold" : "font-medium"}`}
-                                            >
-                                                {item.label}
-                                            </span>
-                                            {isActive && (
-                                                <div className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0 bg-white" />
+                                            <Icon
+                                                className={`w-5 h-5 flex-shrink-0 transition-all ${
+                                                    isActive ? "stroke-[2.5]" : "stroke-2 group-hover:stroke-[2.5]"
+                                                }`}
+                                            />
+                                            {!isCollapsed && (
+                                                <>
+                                                    <span
+                                                        className={`text-sm whitespace-nowrap ${isActive ? "font-bold" : "font-medium"}`}
+                                                    >
+                                                        {item.label}
+                                                    </span>
+                                                    {isActive && (
+                                                        <div className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0 bg-white" />
+                                                    )}
+                                                </>
                                             )}
                                         </>
                                     )}
-                                </button>
+                                </NavLink>
                             </li>
                         );
                     })}

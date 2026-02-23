@@ -539,7 +539,7 @@ export function AppShell({ skipAuth: _skipAuth = false, embedded = false, onLogo
 
     return (
         <AppShellContextInternal.Provider value={{ onLogoutRequest: handleLogout, embedded }}>
-            <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: "var(--color-bg)" }}>
+            <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: "var(--color-bg-app)" }}>
                 {/* Sidebar - desktop only, hidden on immersive routes */}
                 {shouldShowNav && (
                     <Sidebar isCollapsed={isCollapsed} onToggleCollapse={() => setIsCollapsed((prev) => !prev)} />
@@ -547,7 +547,7 @@ export function AppShell({ skipAuth: _skipAuth = false, embedded = false, onLogo
 
                 {/* Main content area */}
                 <div
-                    className={`relative z-10 pb-32 md:pb-0 transition-all duration-300 ${
+                    className={`relative z-10 pb-24 md:pb-6 transition-all duration-300 ${
                         shouldShowNav ? (isCollapsed ? "md:ml-16" : "md:ml-64") : ""
                     }`}
                 >

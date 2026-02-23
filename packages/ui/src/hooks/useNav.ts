@@ -1,5 +1,5 @@
-import { createContext, useContext, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { createContext, useContext } from "react";
+import { useNavigate, type NavigateOptions } from "react-router-dom";
 
 /**
  * Base path context for navigation
@@ -11,31 +11,15 @@ export const BasePathContext = createContext<string>("");
  * Converts relative paths to absolute paths with base path
  */
 export const useNav = () => {
-    const navigate = useNavigate();
     const basePath = useContext(BasePathContext);
+    const rawNavigate = useNavigate();
 
-    /**
-     * Convert relative path to absolute path with base
-     */
-    const to = useCallback(
-        (path: string): string => {
-            if (path.startsWith("/")) {
-                return `${basePath}${path}`;
-            }
-            return path;
-        },
-        [basePath],
-    );
+    const to = (path: string): string => (basePath ? `${basePath}${path}` : path);
 
-    /**
-     * Navigate to a path (automatically prepends base path)
-     */
-    const nav = useCallback(
-        (path: string) => {
-            navigate(to(path));
-        },
-        [navigate, to],
-    );
+    const navigate = (pathOrDelta: string | number, options?: NavigateOptions) => {
+        if (typeof pathOrDelta === "number") rawNavigate(pathOrDelta);
+        else rawNavigate(to(pathOrDelta), options);
+    };
 
-    return { to, nav, basePath };
+    return { to, navigate, basePath };
 };
