@@ -7,7 +7,7 @@
 
 import type { SessionHistoryEntry } from "@immersive-lang/shared";
 import type { ISessionHistoryService, SessionHistoryFilter } from "@immersive-lang/ui/adapters/factory/interfaces";
-import { db, type DbSessionHistory } from "./database";
+import { getDb, type DbSessionHistory } from "./database";
 
 export class WebSessionHistoryAdapter implements ISessionHistoryService {
     private toDbFormat(entry: SessionHistoryEntry): DbSessionHistory {
@@ -50,11 +50,11 @@ export class WebSessionHistoryAdapter implements ISessionHistoryService {
 
     async save(entry: SessionHistoryEntry): Promise<void> {
         const dbEntry = this.toDbFormat(entry);
-        await db.sessions.put(dbEntry);
+        await getDb().sessions.put(dbEntry);
     }
 
     async getAll(filter?: SessionHistoryFilter): Promise<SessionHistoryEntry[]> {
-        let collection = db.sessions.where("deleted").equals(0);
+        let collection = getDb().sessions.where("deleted").equals(0);
 
         if (filter?.language) {
             collection = collection.and((item) => item.language === filter.language);
@@ -86,7 +86,7 @@ export class WebSessionHistoryAdapter implements ISessionHistoryService {
     }
 
     async get(id: string): Promise<SessionHistoryEntry | null> {
-        const row = await db.sessions.get(id);
+        const row = await getDb().sessions.get(id);
         if (!row || row.deleted === 1) {
             return null;
         }
@@ -95,8 +95,8 @@ export class WebSessionHistoryAdapter implements ISessionHistoryService {
 
     async delete(id: string): Promise<void> {
         const now = Date.now();
-        const existing = await db.sessions.get(id);
-        await db.sessions.update(id, {
+        const existing = await getDb().sessions.get(id);
+        await getDb().sessions.update(id, {
             deleted: 1,
             deletedAt: now,
             syncVersion: (existing?.syncVersion ?? 0) + 1,
@@ -106,7 +106,7 @@ export class WebSessionHistoryAdapter implements ISessionHistoryService {
 
     async clear(): Promise<void> {
         const now = Date.now();
-        await db.sessions.toCollection().modify({
+        await getDb().sessions.toCollection().modify({
             deleted: 1,
             deletedAt: now,
             syncedAt: null,

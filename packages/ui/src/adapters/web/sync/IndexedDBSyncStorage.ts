@@ -1,5 +1,5 @@
 import type { Checkpoint, PullRecord, SyncRecord } from "@immersive-lang/shared";
-import { db, getCurrentTimestamp, getSyncMeta, setSyncMeta, SYNC_META_KEYS } from "@immersive-lang/ui/adapters/web";
+import { getDb, getCurrentTimestamp, getSyncMeta, setSyncMeta, SYNC_META_KEYS } from "@immersive-lang/ui/adapters/web";
 
 /**
  * IndexedDB storage layer for sync operations
@@ -13,7 +13,7 @@ export class IndexedDBSyncStorage {
         const records: SyncRecord[] = [];
 
         // Get unsynced session history (where syncedAt is null or undefined)
-        const sessions = await db.sessions.toArray();
+        const sessions = await getDb().sessions.toArray();
         for (const session of sessions) {
             if (session.syncedAt === null || session.syncedAt === undefined) {
                 records.push({
@@ -37,7 +37,7 @@ export class IndexedDBSyncStorage {
         }
 
         // Get pending deletes from _pendingChanges table
-        const pendingDeletes = await db._pendingChanges.toArray();
+        const pendingDeletes = await getDb()._pendingChanges.toArray();
         for (const change of pendingDeletes) {
             if (change.operation === "delete") {
                 records.push({
@@ -57,11 +57,18 @@ export class IndexedDBSyncStorage {
      * Get count of pending changes
      */
     async getPendingChangesCount(): Promise<number> {
-        const unsyncedCount = await db.sessions
+        const unsyncedCount = await getDb().sessions
             .filter((session) => session.syncedAt === null || session.syncedAt === undefined)
             .count();
-        const pendingDeletesCount = await db._pendingChanges.count();
+        const pendingDeletesCount = await getDb()._pendingChanges.count();
         return unsyncedCount + pendingDeletesCount;
+    }
+
+    /**
+     * Returns true if there are any local changes not yet synced.
+     */
+    async hasPendingChanges(): Promise<boolean> {
+        return (await this.getPendingChangesCount()) > 0;
     }
 
     /**
@@ -73,10 +80,10 @@ export class IndexedDBSyncStorage {
         for (const record of records) {
             if (record.deleted) {
                 // Remove from pending changes and hard delete from sessions if needed
-                await db._pendingChanges.where({ tableName: record.tableName, rowId: record.rowId }).delete();
+                await getDb()._pendingChanges.where({ tableName: record.tableName, rowId: record.rowId }).delete();
             } else {
                 // Update syncedAt timestamp
-                await db.sessions.update(record.rowId, { syncedAt: now });
+                await getDb().sessions.update(record.rowId, { syncedAt: now });
             }
         }
     }
@@ -107,7 +114,7 @@ export class IndexedDBSyncStorage {
      * Handles both old snake_case and new camelCase data from server for backwards compatibility
      */
     private async upsertRecord(record: PullRecord, now: number): Promise<void> {
-        const existing = await db.sessions.get(record.rowId);
+        const existing = await getDb().sessions.get(record.rowId);
         const data = record.data;
 
         // Convert server format to DB format (handle both snake_case and camelCase for backwards compat)
@@ -130,12 +137,12 @@ export class IndexedDBSyncStorage {
 
         if (!existing) {
             // New record - insert
-            await db.sessions.add(dbRecord);
+            await getDb().sessions.add(dbRecord);
         } else {
             // Existing record - check version for conflict resolution
             if (existing.syncVersion <= record.version) {
                 // Server wins (or same version)
-                await db.sessions.put(dbRecord);
+                await getDb().sessions.put(dbRecord);
             }
             // else: local version is newer, skip (client wins for this conflict)
         }
@@ -145,7 +152,7 @@ export class IndexedDBSyncStorage {
      * Delete a record (soft delete or hard delete depending on TTL)
      */
     private async deleteRecord(record: PullRecord): Promise<void> {
-        const existing = await db.sessions.get(record.rowId);
+        const existing = await getDb().sessions.get(record.rowId);
         if (!existing) return;
 
         // Hard delete if past TTL, otherwise soft delete (handle both snake_case and camelCase)
@@ -154,10 +161,10 @@ export class IndexedDBSyncStorage {
 
         if (Date.now() - deletedAt > TTL) {
             // Hard delete
-            await db.sessions.delete(record.rowId);
+            await getDb().sessions.delete(record.rowId);
         } else {
             // Soft delete
-            await db.sessions.update(record.rowId, {
+            await getDb().sessions.update(record.rowId, {
                 deleted: 1,
                 deletedAt: deletedAt,
                 syncVersion: record.version,

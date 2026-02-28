@@ -59,8 +59,8 @@ class ImmersiveLangDatabase extends Dexie {
     _syncMeta!: Table<SyncMeta, string>;
     _pendingChanges!: Table<PendingChange, number>;
 
-    constructor() {
-        super("immergo_session_history");
+    constructor(dbName = "immergo_session_history") {
+        super(dbName);
 
         this.version(1).stores({
             sessions: "id, completedAt, language, fromLanguage, mode, deleted, syncVersion, syncedAt",
@@ -70,10 +70,60 @@ class ImmersiveLangDatabase extends Dexie {
     }
 }
 
+// =============================================================================
+// Per-user DB management
+// =============================================================================
+
+let _db: ImmersiveLangDatabase | null = null;
+let _currentUserId: string | null = null;
+
+async function hashUserId(userId: string): Promise<string> {
+    const encoded = new TextEncoder().encode(userId);
+    const hash = await crypto.subtle.digest("SHA-256", encoded);
+    return Array.from(new Uint8Array(hash))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("")
+        .slice(0, 12);
+}
+
 /**
- * Singleton database instance
+ * Initialize (or reinitialize) the DB for a specific user.
+ * If userId is undefined (standalone mode), uses the legacy "immergo_session_history" name.
+ * Calling with the same userId is a no-op.
  */
-export const db = new ImmersiveLangDatabase();
+export async function initDb(userId?: string): Promise<ImmersiveLangDatabase> {
+    if (!userId) {
+        if (!_db || _currentUserId !== null) {
+            if (_db) _db.close();
+            _db = new ImmersiveLangDatabase("immergo_session_history");
+            _currentUserId = null;
+        }
+        return _db;
+    }
+    if (_db && _currentUserId === userId) return _db;
+    if (_db) _db.close();
+    const prefix = await hashUserId(userId);
+    _db = new ImmersiveLangDatabase(`immergo_session_history_${prefix}`);
+    _currentUserId = userId;
+    return _db;
+}
+
+/** Returns the active DB instance. Throws if initDb() has not been called. */
+export function getDb(): ImmersiveLangDatabase {
+    if (!_db) throw new Error("ImmersiveLangDB not initialized. Call initDb() first.");
+    return _db;
+}
+
+/** Close and delete the current user's IndexedDB. Used on logout. */
+export async function deleteCurrentDb(): Promise<void> {
+    if (_db) {
+        const name = _db.name;
+        _db.close();
+        await Dexie.delete(name);
+        _db = null;
+        _currentUserId = null;
+    }
+}
 
 /**
  * Generate a unique ID (UUID v4)
@@ -93,7 +143,7 @@ export function getCurrentTimestamp(): number {
  * Helper to get sync metadata
  */
 export async function getSyncMeta(key: string): Promise<string | null> {
-    const meta = await db._syncMeta.get(key);
+    const meta = await getDb()._syncMeta.get(key);
     return meta?.value ?? null;
 }
 
@@ -101,12 +151,12 @@ export async function getSyncMeta(key: string): Promise<string | null> {
  * Helper to set sync metadata
  */
 export async function setSyncMeta(key: string, value: string): Promise<void> {
-    await db._syncMeta.put({ key, value });
+    await getDb()._syncMeta.put({ key, value });
 }
 
 /**
  * Helper to delete sync metadata
  */
 export async function deleteSyncMeta(key: string): Promise<void> {
-    await db._syncMeta.delete(key);
+    await getDb()._syncMeta.delete(key);
 }

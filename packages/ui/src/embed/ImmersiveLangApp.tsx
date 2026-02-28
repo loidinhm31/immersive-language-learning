@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AppStateProvider, ThemeProvider } from "@immersive-lang/ui/contexts";
 import { type IPlatformServices, PlatformProvider } from "@immersive-lang/ui/platform";
@@ -9,8 +9,16 @@ import {
     setStorageService,
     setSessionHistoryService,
     getAllServices,
+    getSyncService,
 } from "@immersive-lang/ui/adapters";
-import { IndexedDBSyncAdapter, LocalStorageAdapter, WebSessionHistoryAdapter } from "@immersive-lang/ui/adapters/web";
+import {
+    IndexedDBSyncAdapter,
+    IndexedDBSyncStorage,
+    LocalStorageAdapter,
+    WebSessionHistoryAdapter,
+    initDb,
+    deleteCurrentDb,
+} from "@immersive-lang/ui/adapters/web";
 import { QmServerAuthAdapter } from "@immersive-lang/ui/adapters/shared";
 import { AppShell } from "@immersive-lang/ui/components/templates";
 
@@ -29,6 +37,11 @@ export interface ImmersiveLangAppProps {
     onLogoutRequest?: () => void;
     /** Base path for navigation when embedded (e.g., '/immersive-lang') */
     basePath?: string;
+    /** Register a cleanup callback for logout (sync + delete DB). Returns unregister fn. */
+    registerLogoutCleanup?: (
+        appId: string,
+        fn: () => Promise<{ success: boolean; error?: string }>,
+    ) => () => void;
 }
 
 /**
@@ -41,11 +54,43 @@ export const ImmersiveLangApp: React.FC<ImmersiveLangAppProps> = ({
     onLogoutRequest,
     basePath = "",
     className,
+    registerLogoutCleanup,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const [dbReady, setDbReady] = useState(false);
 
-    // Initialize services synchronously before first render
+    useEffect(() => {
+        setDbReady(false);
+        initDb(authTokens?.userId)
+            .then(() => setDbReady(true))
+            .catch(console.error);
+    }, [authTokens?.userId]);
+
+    // Register logout cleanup with hub after DB is ready
+    useEffect(() => {
+        if (!dbReady || !registerLogoutCleanup) return;
+        const unregister = registerLogoutCleanup("immersive-lang", async () => {
+            try {
+                const storage = new IndexedDBSyncStorage();
+                const hasPending = await storage.hasPendingChanges();
+                if (hasPending) {
+                    const syncService = getSyncService();
+                    const result = await syncService.syncNow();
+                    if (!result.success) return { success: false, error: result.error };
+                }
+                await deleteCurrentDb();
+                return { success: true };
+            } catch (e) {
+                return { success: false, error: e instanceof Error ? e.message : "Cleanup failed" };
+            }
+        });
+        return unregister;
+    }, [dbReady, registerLogoutCleanup]);
+
+    // Initialize services only after DB is ready
     const platform = useMemo<IPlatformServices>(() => {
+        if (!dbReady) return {} as IPlatformServices;
+
         // Storage service
         setStorageService(new LocalStorageAdapter());
 
@@ -65,15 +110,16 @@ export const ImmersiveLangApp: React.FC<ImmersiveLangAppProps> = ({
         setSyncService(sync);
 
         return getAllServices();
-    }, []);
+    }, [dbReady]);
 
     // Inject auth tokens when embedded (SSO from qm-hub)
     useEffect(() => {
-        if (authTokens?.accessToken && authTokens?.refreshToken && authTokens?.userId) {
+        if (dbReady && authTokens?.accessToken && authTokens?.refreshToken && authTokens?.userId) {
             platform.auth.saveTokensExternal?.(authTokens.accessToken, authTokens.refreshToken, authTokens.userId);
-            console.log("Auth tokens injected for embedded mode");
         }
-    }, [authTokens, platform.auth]);
+    }, [dbReady, authTokens, platform.auth]);
+
+    if (!dbReady) return null;
 
     const content = (
         <AppStateProvider>
