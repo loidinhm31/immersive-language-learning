@@ -2,7 +2,7 @@
  * Environment configuration interface
  */
 export interface AppEnvironment {
-    VITE_QM_CENTER_SERVER_URL: string;
+    VITE_QM_HUB_SERVER_URL: string;
     VITE_IMMERSIVE_LANG_APP_ID: string;
     VITE_IMMERSIVE_LANG_API_KEY: string;
     DEV: boolean;
@@ -14,7 +14,7 @@ export interface AppEnvironment {
  * Default values for environment variables
  */
 const ENV_DEFAULTS: Partial<AppEnvironment> = {
-    VITE_QM_CENTER_SERVER_URL: "http://localhost:3000",
+    VITE_QM_HUB_SERVER_URL: "http://localhost:3000",
     VITE_IMMERSIVE_LANG_APP_ID: "immersive-lang",
     VITE_IMMERSIVE_LANG_API_KEY: "",
     DEV: false,
@@ -89,14 +89,14 @@ class EnvironmentManager {
      * Get the server URL (qm-hub-server)
      */
     get apiBaseUrl(): string {
-        return this.get("VITE_QM_CENTER_SERVER_URL");
+        return this.get("VITE_QM_HUB_SERVER_URL");
     }
 
     /**
      * Get the sync server URL
      */
     get serverUrl(): string {
-        return this.get("VITE_QM_CENTER_SERVER_URL");
+        return this.get("VITE_QM_HUB_SERVER_URL");
     }
 
     /**
