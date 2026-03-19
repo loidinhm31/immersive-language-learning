@@ -21,6 +21,7 @@ import {
 } from "@immersive-lang/ui/adapters/web";
 import { QmServerAuthAdapter } from "@immersive-lang/ui/adapters/shared";
 import { AppShell } from "@immersive-lang/ui/components/templates";
+import { useAutoSync } from "../hooks/useAutoSync";
 
 export interface ImmersiveLangAppProps {
     className?: string;
@@ -111,6 +112,12 @@ export const ImmersiveLangApp: React.FC<ImmersiveLangAppProps> = ({
 
         return getAllServices();
     }, [dbReady]);
+
+    const isAuthenticated = !!(authTokens?.accessToken && authTokens?.refreshToken);
+    useAutoSync({
+        syncService: dbReady ? getSyncService() : null,
+        enabled: dbReady && isAuthenticated && embedded,
+    });
 
     // Inject auth tokens when embedded (SSO from qm-hub)
     useEffect(() => {
