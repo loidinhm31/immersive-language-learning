@@ -22,6 +22,10 @@ import {
 import { QmServerAuthAdapter } from "@immersive-lang/ui/adapters/shared";
 import { AppShell } from "@immersive-lang/ui/components/templates";
 import { useAutoSync } from "../hooks/useAutoSync";
+import { useSyncToast } from "../hooks/useSyncToast";
+import { SyncToastProvider } from "@immersive-lang/ui/contexts";
+import { SyncToast } from "@immersive-lang/ui/components/atoms";
+import type { ISyncService } from "@immersive-lang/ui/adapters/factory/interfaces";
 
 export interface ImmersiveLangAppProps {
     className?: string;
@@ -43,6 +47,23 @@ export interface ImmersiveLangAppProps {
         appId: string,
         fn: () => Promise<{ success: boolean; error?: string }>,
     ) => () => void;
+}
+
+function SyncAutoSyncManager({
+    syncService,
+    enabled,
+}: {
+    syncService: ISyncService | null;
+    enabled: boolean;
+}) {
+    const { handleSyncStart, handleSyncResult } = useSyncToast();
+    useAutoSync({
+        syncService,
+        enabled,
+        onSyncStart: handleSyncStart,
+        onSyncResult: handleSyncResult,
+    });
+    return null;
 }
 
 /**
@@ -114,10 +135,7 @@ export const ImmersiveLangApp: React.FC<ImmersiveLangAppProps> = ({
     }, [dbReady]);
 
     const isAuthenticated = !!(authTokens?.accessToken && authTokens?.refreshToken);
-    useAutoSync({
-        syncService: dbReady ? getSyncService() : null,
-        enabled: dbReady && isAuthenticated && embedded,
-    });
+    const autoSyncEnabled = dbReady && isAuthenticated && embedded;
 
     // Inject auth tokens when embedded (SSO from qm-hub)
     useEffect(() => {
@@ -143,7 +161,14 @@ export const ImmersiveLangApp: React.FC<ImmersiveLangAppProps> = ({
                     themeEventName="immersive-lang-theme-change"
                 >
                     <BasePathContext.Provider value={basePath}>
-                        {useRouter ? <BrowserRouter basename={basePath}>{content}</BrowserRouter> : content}
+                        <SyncToastProvider position="top-right">
+                            {useRouter ? <BrowserRouter basename={basePath}>{content}</BrowserRouter> : content}
+                            <SyncAutoSyncManager
+                                syncService={dbReady ? getSyncService() : null}
+                                enabled={autoSyncEnabled}
+                            />
+                            <SyncToast />
+                        </SyncToastProvider>
                     </BasePathContext.Provider>
                 </ThemeProvider>
             </PlatformProvider>
