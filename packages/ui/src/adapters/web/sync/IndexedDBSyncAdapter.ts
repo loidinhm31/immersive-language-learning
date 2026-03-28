@@ -67,6 +67,14 @@ export class IndexedDBSyncAdapter implements ISyncService {
             );
             this.lastConfigHash = hash;
             serviceLogger.sync(`Sync client created/updated: ${config.serverUrl}`);
+            // Write rotated tokens back to persistent storage immediately so the
+            // next syncWithProgress() load doesn't overwrite them with stale values.
+            const client = this.client;
+            client.setOnTokenRefresh((at, rt) => {
+                this.saveTokens(at, rt, client.getUserId() ?? "").catch(
+                    (e: unknown) => serviceLogger.syncError("Failed to save refreshed tokens:", e),
+                );
+            });
         }
 
         return this.client;
@@ -119,7 +127,19 @@ export class IndexedDBSyncAdapter implements ISyncService {
             }
 
             // Perform delta sync (push + pull in one call)
-            const response = await client.delta(pendingChanges, checkpoint);
+            let response;
+            try {
+                response = await client.delta(pendingChanges, checkpoint);
+            } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                if (msg.includes("Invalid checkpoint format")) {
+                    serviceLogger.syncError("Corrupted checkpoint detected, resetting to initial");
+                    await this.storage.saveCheckpoint(initialCheckpoint());
+                    response = await client.delta(pendingChanges, initialCheckpoint());
+                } else {
+                    throw err;
+                }
+            }
 
             let pushed = 0;
             let pulled = 0;

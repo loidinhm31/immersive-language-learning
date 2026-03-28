@@ -188,8 +188,18 @@ export class IndexedDBSyncStorage {
 
     /**
      * Save sync checkpoint
+     * Validates checkpoint ID is empty or UUID v4 before saving to prevent
+     * corrupted checkpoints from blocking future syncs.
      */
     async saveCheckpoint(checkpoint: Checkpoint): Promise<void> {
+        const id = checkpoint.id;
+        const isValidId = id === "" || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        if (!isValidId) {
+            // Non-UUID checkpoint ID from server (rowId was not a UUID).
+            // Keep the timestamp but zero the ID so the next sync re-fetches from that point.
+            await setSyncMeta(SYNC_META_KEYS.CHECKPOINT, JSON.stringify({ ...checkpoint, id: "" }));
+            return;
+        }
         await setSyncMeta(SYNC_META_KEYS.CHECKPOINT, JSON.stringify(checkpoint));
     }
 

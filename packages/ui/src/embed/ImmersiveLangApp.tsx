@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AppStateProvider, ThemeProvider } from "@immersive-lang/ui/contexts";
 import { type IPlatformServices, PlatformProvider } from "@immersive-lang/ui/platform";
@@ -80,6 +80,10 @@ export const ImmersiveLangApp: React.FC<ImmersiveLangAppProps> = ({
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [dbReady, setDbReady] = useState(false);
+    // Tracks whether auth tokens have been written to the adapter's storage.
+    // In embedded mode, tokens are injected from authTokens prop — auto-sync
+    // must not start until this write completes.
+    const [tokensReady, setTokensReady] = useState(!embedded);
 
     useEffect(() => {
         setDbReady(false);
@@ -135,12 +139,15 @@ export const ImmersiveLangApp: React.FC<ImmersiveLangAppProps> = ({
     }, [dbReady]);
 
     const isAuthenticated = !!(authTokens?.accessToken && authTokens?.refreshToken);
-    const autoSyncEnabled = dbReady && isAuthenticated && embedded;
+    const autoSyncEnabled = dbReady && tokensReady && isAuthenticated && embedded;
 
-    // Inject auth tokens when embedded (SSO from qm-hub)
-    useEffect(() => {
+    // Inject auth tokens before auto-sync fires (SSO from qm-hub-app).
+    // useLayoutEffect ensures this runs before any passive useEffect in children,
+    // including useAutoSync. setTokensReady(true) gates auto-sync explicitly.
+    useLayoutEffect(() => {
         if (dbReady && authTokens?.accessToken && authTokens?.refreshToken && authTokens?.userId) {
             platform.auth.saveTokensExternal?.(authTokens.accessToken, authTokens.refreshToken, authTokens.userId);
+            setTokensReady(true);
         }
     }, [dbReady, authTokens, platform.auth]);
 

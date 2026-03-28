@@ -57,6 +57,9 @@ export class QmServerAuthAdapter implements IAuthService {
     private statusCacheTimestamp: number = 0;
     private static STATUS_CACHE_TTL = 10000; // 10 seconds cache
 
+    // Dedup concurrent refresh calls — token rotation means only one can succeed
+    private _refreshInFlight: Promise<void> | null = null;
+
     constructor(config?: QmServerAuthConfig) {
         // In web mode, skip localStorage and use env directly
         // In Tauri mode, allow localStorage to override env for user configuration
@@ -257,6 +260,17 @@ export class QmServerAuthAdapter implements IAuthService {
     }
 
     async refreshToken(): Promise<void> {
+        // Dedup: all concurrent callers share a single in-flight refresh.
+        // Token rotation means only the first call can succeed with the current RT.
+        if (!this._refreshInFlight) {
+            this._refreshInFlight = this._doRefresh().finally(() => {
+                this._refreshInFlight = null;
+            });
+        }
+        return this._refreshInFlight;
+    }
+
+    private async _doRefresh(): Promise<void> {
         const refreshToken = this.getStoredValue(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
         if (!refreshToken) {
             throw new Error("No refresh token available");
@@ -271,6 +285,8 @@ export class QmServerAuthAdapter implements IAuthService {
             // Update stored tokens
             this.setStoredValue(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
             this.setStoredValue(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
+            // Invalidate status cache so next getStatus() re-evaluates with fresh token
+            this.invalidateStatusCache();
             serviceLogger.qmServerDebug("Token refreshed");
         } catch (error) {
             serviceLogger.qmServerError("Token refresh failed");
