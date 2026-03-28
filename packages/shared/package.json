@@ -23,7 +23,7 @@
         "tailwind-merge": "^3.4.1"
     },
     "devDependencies": {
-        "@immersive-lang/eslint-config": "workspace:*",
+        "@immersive-lang/eslint-config": "0.2.3",
         "@immersive-lang/tsconfig": "workspace:*",
         "typescript": "^5.9.3"
     }
